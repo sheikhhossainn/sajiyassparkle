@@ -197,3 +197,22 @@ img {
 .gap-sm { gap: var(--spacing-sm); }
 .gap-md { gap: var(--spacing-md); }
 .gap-lg { gap: var(--spacing-lg); }
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 968px) {
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-links {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .btn {
+        width: 100%;
+    }
+}
