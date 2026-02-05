@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sajiyas Sparkle - Checkout">
+    <title>Checkout | Sajiyas Sparkle</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/checkout.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">💎</span>Sajiyas Sparkle
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">Collections</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="#" class="nav-action">
+                    <span class="icon">👤</span> Login
+                </a>
+                <a href="#" class="nav-action">
+                    <span class="icon">❤️</span> Wishlist
+                </a>
+                <a href="#" class="nav-action">
+                    <span class="icon">🛒</span> Cart (2)
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <h1 class="section-title mt-lg">Checkout</h1>
+
+            <!-- Error Alert (hidden by default) -->
+            <div class="alert alert-error" id="errorAlert" style="display: none;">
+                <span class="alert-icon">⚠️</span>
+                <div class="alert-content">
+                    <strong>Error:</strong>
+                    <span id="errorMessage">Something went wrong. Please try again.</span>
+                </div>
+                <button class="alert-close" onclick="closeAlert()">×</button>
+            </div>
+
+            <!-- Checkout Layout -->
+            <div class="checkout-layout">
+                <!-- Left Column: Delivery Details Form -->
+                <div class="checkout-form-section">
+                    <h2 class="form-section-title">Delivery Details</h2>
+                    
+                    <form id="checkoutForm" novalidate>
+                        <!-- Personal Information -->
+                        <div class="form-group">
+                            <label for="fullName" class="form-label">Full Name <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="fullName" 
+                                name="fullName" 
+                                class="form-input" 
+                                required
+                                placeholder="Enter your full name">
+                            <span class="form-error" id="fullNameError"></span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email <span class="required">*</span></label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    class="form-input" 
+                                    required
+                                    placeholder="your@email.com">
+                                <span class="form-error" id="emailError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number <span class="required">*</span></label>
+                                <input 
+                                    type="tel" 
+                                    id="phone" 
+                                    name="phone" 
+                                    class="form-input" 
+                                    required
+                                    placeholder="+1 (555) 000-0000">
+                                <span class="form-error" id="phoneError"></span>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="form-group">
+                            <label for="address" class="form-label">Street Address <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="address" 
+                                name="address" 
+                                class="form-input" 
+                                required
+                                placeholder="123 Main Street">
+                            <span class="form-error" id="addressError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address2" class="form-label">Apartment, Suite, etc. (Optional)</label>
+                            <input 
+                                type="text" 
+                                id="address2" 
+                                name="address2" 
+                                class="form-input" 
+                                placeholder="Apt 4B">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city" class="form-label">City <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="city" 
+                                    name="city" 
+                                    class="form-input" 
+                                    required
+                                    placeholder="New York">
+                                <span class="form-error" id="cityError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="state" class="form-label">State <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="state" 
+                                    name="state" 
+                                    class="form-input" 
+                                    required
+                                    placeholder="NY">
+                                <span class="form-error" id="stateError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="zipCode" class="form-label">Zip Code <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="zipCode" 
+                                    name="zipCode" 
+                                    class="form-input" 
+                                    required
+                                    placeholder="10001">
+                                <span class="form-error" id="zipCodeError"></span>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Notes -->
+                        <div class="form-group">
+                            <label for="notes" class="form-label">Delivery Notes (Optional)</label>
+                            <textarea 
+                                id="notes" 
+                                name="notes" 
+                                class="form-textarea" 
+                                rows="3"
+                                placeholder="Any special instructions for delivery..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+                            <span class="btn-text">Place Order</span>
+                            <span class="btn-loader" style="display: none;">
+                                <span class="loader"></span>
+                                Processing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Order Summary -->
+                <div class="checkout-summary-section">
+                    <h2 class="form-section-title">Order Summary</h2>
+                    
+                    <!-- Order Items -->
+                    <div class="order-items">
+                        <div class="order-item card">
+                            <div class="order-item-image">
+                                <div class="placeholder-image">💍</div>
+                            </div>
+                            <div class="order-item-details">
+                                <h3 class="order-item-title">Diamond Engagement Ring</h3>
+                                <p class="order-item-meta">18K Gold, Size 7</p>
+                                <p class="order-item-quantity">Qty: 1</p>
+                            </div>
+                            <div class="order-item-price">$2,499.00</div>
+                        </div>
+
+                        <div class="order-item card">
+                            <div class="order-item-image">
+                                <div class="placeholder-image">📿</div>
+                            </div>
+                            <div class="order-item-details">
+                                <h3 class="order-item-title">Pearl Necklace</h3>
+                                <p class="order-item-meta">18" Length</p>
+                                <p class="order-item-quantity">Qty: 1</p>
+                            </div>
+                            <div class="order-item-price">$899.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary Totals -->
+                    <div class="order-summary-totals">
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal</span>
+                            <span class="summary-value">$3,398.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Shipping</span>
+                            <span class="summary-value">Free</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Tax</span>
+                            <span class="summary-value">$271.84</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span class="summary-label">Total</span>
+                            <span class="summary-value">$3,669.84</span>
+                        </div>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="security-notice">
+                        <span class="security-icon">🔒</span>
+                        <p>Your payment information is encrypted and secure</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Sajiyas Sparkle. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for form validation and submission -->
+    <script src="../js/checkout.js"></script>
+</body>
+
+</html>
