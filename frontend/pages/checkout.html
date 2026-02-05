@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Checkout - Complete your jewelry order at Sajiyas Sparkle">
+    <title>Checkout | Sajiyas Sparkle</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/checkout.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="../index.html" class="logo">
+                <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2L8 10H16L12 2Z" fill="#f0e68c"/>
+                    <path d="M4 6L8 10L12 22L6 18L4 6Z" fill="#b8961e"/>
+                </svg>
+                Sajiyas Sparkle
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="categories.html">Categories</a></li>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">Collections</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="#" class="nav-action">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Login
+                </a>
+                <a href="#" class="nav-action">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Wishlist
+                </a>
+                <a href="#" class="nav-action">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 2L7.17 4H3C1.9 4 1 4.9 1 6V18C1 19.1 1.9 20 3 20H21C22.1 20 23 19.1 23 18V6C23 4.9 22.1 4 21 4H16.83L15 2H9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Cart (2)
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Checkout Header -->
+        <section class="checkout-header">
+            <div class="container">
+                <h1 class="section-title">Checkout</h1>
+                <div class="checkout-steps">
+                    <div class="step active">
+                        <div class="step-number">1</div>
+                        <span class="step-label">Delivery Details</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <span class="step-label">Payment</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <span class="step-label">Confirmation</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Alert (Initially Hidden) -->
+        <div id="errorAlert" class="alert alert-error" style="display: none;">
+            <div class="container">
+                <div class="alert-content">
+                    <svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                    </svg>
+                    <div class="alert-message">
+                        <strong>Error:</strong> <span id="errorMessage">Please fix the errors in the form before proceeding.</span>
+                    </div>
+                    <button class="alert-close" onclick="hideErrorAlert()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Content -->
+        <section class="section">
+            <div class="container">
+                <div class="checkout-grid">
+                    <!-- Delivery Details Form -->
+                    <div class="checkout-section">
+                        <h2 class="checkout-section-title">Delivery Details</h2>
+                        <form id="checkoutForm" class="checkout-form" novalidate>
+                            <!-- Full Name -->
+                            <div class="form-group">
+                                <label for="fullName" class="form-label">Full Name <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="fullName" 
+                                    name="fullName"
+                                    class="form-input" 
+                                    placeholder="Enter your full name"
+                                    required
+                                >
+                                <span class="form-error" id="fullNameError"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address <span class="required">*</span></label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email"
+                                    class="form-input" 
+                                    placeholder="your.email@example.com"
+                                    required
+                                >
+                                <span class="form-error" id="emailError"></span>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number <span class="required">*</span></label>
+                                <input 
+                                    type="tel" 
+                                    id="phone" 
+                                    name="phone"
+                                    class="form-input" 
+                                    placeholder="+91 98765 43210"
+                                    required
+                                >
+                                <span class="form-error" id="phoneError"></span>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="form-group">
+                                <label for="address" class="form-label">Street Address <span class="required">*</span></label>
+                                <textarea 
+                                    id="address" 
+                                    name="address"
+                                    class="form-input form-textarea" 
+                                    rows="3"
+                                    placeholder="Enter your complete street address"
+                                    required
+                                ></textarea>
+                                <span class="form-error" id="addressError"></span>
+                            </div>
+
+                            <!-- City and State -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="city" class="form-label">City <span class="required">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        id="city" 
+                                        name="city"
+                                        class="form-input" 
+                                        placeholder="City"
+                                        required
+                                    >
+                                    <span class="form-error" id="cityError"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="state" class="form-label">State <span class="required">*</span></label>
+                                    <select id="state" name="state" class="form-input" required>
+                                        <option value="">Select State</option>
+                                        <option value="AP">Andhra Pradesh</option>
+                                        <option value="AR">Arunachal Pradesh</option>
+                                        <option value="AS">Assam</option>
+                                        <option value="BR">Bihar</option>
+                                        <option value="CG">Chhattisgarh</option>
+                                        <option value="GA">Goa</option>
+                                        <option value="GJ">Gujarat</option>
+                                        <option value="HR">Haryana</option>
+                                        <option value="HP">Himachal Pradesh</option>
+                                        <option value="JK">Jammu and Kashmir</option>
+                                        <option value="JH">Jharkhand</option>
+                                        <option value="KA">Karnataka</option>
+                                        <option value="KL">Kerala</option>
+                                        <option value="MP">Madhya Pradesh</option>
+                                        <option value="MH">Maharashtra</option>
+                                        <option value="MN">Manipur</option>
+                                        <option value="ML">Meghalaya</option>
+                                        <option value="MZ">Mizoram</option>
+                                        <option value="NL">Nagaland</option>
+                                        <option value="OR">Odisha</option>
+                                        <option value="PB">Punjab</option>
+                                        <option value="RJ">Rajasthan</option>
+                                        <option value="SK">Sikkim</option>
+                                        <option value="TN">Tamil Nadu</option>
+                                        <option value="TG">Telangana</option>
+                                        <option value="TR">Tripura</option>
+                                        <option value="UP">Uttar Pradesh</option>
+                                        <option value="UT">Uttarakhand</option>
+                                        <option value="WB">West Bengal</option>
+                                    </select>
+                                    <span class="form-error" id="stateError"></span>
+                                </div>
+                            </div>
+
+                            <!-- Postal Code -->
+                            <div class="form-group">
+                                <label for="postalCode" class="form-label">Postal Code <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="postalCode" 
+                                    name="postalCode"
+                                    class="form-input" 
+                                    placeholder="600001"
+                                    required
+                                    maxlength="6"
+                                >
+                                <span class="form-error" id="postalCodeError"></span>
+                            </div>
+
+                            <!-- Additional Notes -->
+                            <div class="form-group">
+                                <label for="notes" class="form-label">Delivery Notes (Optional)</label>
+                                <textarea 
+                                    id="notes" 
+                                    name="notes"
+                                    class="form-input form-textarea" 
+                                    rows="2"
+                                    placeholder="Any special delivery instructions..."
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="checkout-section">
+                        <h2 class="checkout-section-title">Order Summary</h2>
+                        
+                        <!-- Order Items -->
+                        <div class="order-items">
+                            <div class="order-item-card">
+                                <div class="order-item-image">
+                                    <img src="https://placehold.co/100x100/f5f5f5/d4af37?text=Gold+Necklace" alt="Gold Necklace">
+                                </div>
+                                <div class="order-item-details">
+                                    <h3 class="order-item-title">Gold Necklace</h3>
+                                    <p class="order-item-meta">22K Gold • 10.5g</p>
+                                    <p class="order-item-quantity">Quantity: 1</p>
+                                </div>
+                                <div class="order-item-price">₹12,500</div>
+                            </div>
+
+                            <div class="order-item-card">
+                                <div class="order-item-image">
+                                    <img src="https://placehold.co/100x100/f5f5f5/c0c0c0?text=Diamond+Ring" alt="Diamond Ring">
+                                </div>
+                                <div class="order-item-details">
+                                    <h3 class="order-item-title">Diamond Ring</h3>
+                                    <p class="order-item-meta">18K White Gold • 0.5ct Diamond</p>
+                                    <p class="order-item-quantity">Quantity: 1</p>
+                                </div>
+                                <div class="order-item-price">₹25,000</div>
+                            </div>
+                        </div>
+
+                        <!-- Order Totals -->
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span class="summary-label">Subtotal</span>
+                                <span class="summary-value">₹37,500</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Shipping</span>
+                                <span class="summary-value summary-free">Free</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Tax (3%)</span>
+                                <span class="summary-value">₹1,125</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-row summary-total">
+                                <span class="summary-label">Total</span>
+                                <span class="summary-value">₹38,625</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="button" id="submitBtn" class="btn btn-primary btn-submit" onclick="handleSubmit()">
+                            <span id="submitBtnText">Proceed to Payment</span>
+                            <span id="submitBtnLoader" class="btn-loader" style="display: none;">
+                                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"/>
+                                    <path d="M12 2C6.47715 2 2 6.47715 2 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                                Processing...
+                            </span>
+                        </button>
+
+                        <!-- Security Badge -->
+                        <div class="security-badge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 12L11 14L15 10" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Secure Checkout • 256-bit SSL Encryption</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Sajiyas Sparkle. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Form Validation
+        function validateForm() {
+            let isValid = true;
+            const form = document.getElementById('checkoutForm');
+            
+            // Clear previous errors
+            document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+
+            // Full Name Validation
+            const fullName = document.getElementById('fullName');
+            if (!fullName.value.trim()) {
+                showFieldError('fullName', 'Full name is required');
+                isValid = false;
+            } else if (fullName.value.trim().length < 2) {
+                showFieldError('fullName', 'Name must be at least 2 characters');
+                isValid = false;
+            }
+
+            // Email Validation
+            const email = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.value.trim()) {
+                showFieldError('email', 'Email address is required');
+                isValid = false;
+            } else if (!emailRegex.test(email.value)) {
+                showFieldError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+
+            // Phone Validation
+            const phone = document.getElementById('phone');
+            const phoneRegex = /^[\d\s\+\-\(\)]{10,15}$/;
+            if (!phone.value.trim()) {
+                showFieldError('phone', 'Phone number is required');
+                isValid = false;
+            } else if (!phoneRegex.test(phone.value.trim())) {
+                showFieldError('phone', 'Please enter a valid phone number');
+                isValid = false;
+            }
+
+            // Address Validation
+            const address = document.getElementById('address');
+            if (!address.value.trim()) {
+                showFieldError('address', 'Street address is required');
+                isValid = false;
+            } else if (address.value.trim().length < 10) {
+                showFieldError('address', 'Please enter a complete address');
+                isValid = false;
+            }
+
+            // City Validation
+            const city = document.getElementById('city');
+            if (!city.value.trim()) {
+                showFieldError('city', 'City is required');
+                isValid = false;
+            }
+
+            // State Validation
+            const state = document.getElementById('state');
+            if (!state.value) {
+                showFieldError('state', 'Please select a state');
+                isValid = false;
+            }
+
+            // Postal Code Validation
+            const postalCode = document.getElementById('postalCode');
+            const postalRegex = /^\d{6}$/;
+            if (!postalCode.value.trim()) {
+                showFieldError('postalCode', 'Postal code is required');
+                isValid = false;
+            } else if (!postalRegex.test(postalCode.value.trim())) {
+                showFieldError('postalCode', 'Please enter a valid 6-digit postal code');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showFieldError(fieldId, message) {
+            const errorEl = document.getElementById(fieldId + 'Error');
+            const inputEl = document.getElementById(fieldId);
+            errorEl.textContent = message;
+            inputEl.classList.add('error');
+        }
+
+        function showErrorAlert(message) {
+            const alertEl = document.getElementById('errorAlert');
+            const messageEl = document.getElementById('errorMessage');
+            messageEl.textContent = message;
+            alertEl.style.display = 'block';
+            
+            // Scroll to top to show error
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideErrorAlert();
+            }, 5000);
+        }
+
+        function hideErrorAlert() {
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        function setLoading(isLoading) {
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('submitBtnText');
+            const btnLoader = document.getElementById('submitBtnLoader');
+
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'flex';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        }
+
+        async function handleSubmit() {
+            // Hide any existing errors
+            hideErrorAlert();
+
+            // Validate form
+            if (!validateForm()) {
+                showErrorAlert('Please fix the errors in the form before proceeding.');
+                return;
+            }
+
+            // Set loading state
+            setLoading(true);
+
+            // Simulate API call
+            try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Success - In a real app, redirect to payment
+                alert('Form submitted successfully! Redirecting to payment...');
+                // window.location.href = 'payment.html';
+                
+            } catch (error) {
+                showErrorAlert('An error occurred while processing your request. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Real-time validation on blur
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.form-input');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && this.value.trim()) {
+                        // Validate individual field on blur
+                        const errorId = this.id + 'Error';
+                        document.getElementById(errorId).textContent = '';
+                        this.classList.remove('error');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
