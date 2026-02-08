@@ -1,0 +1,381 @@
+/* ============================================
+   About Page Styles
+   ============================================ */
+
+/* About Hero Section */
+.about-hero {
+    background-color: var(--color-neutral-light);
+    padding: var(--spacing-2xl) 0;
+    border-bottom: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.about-hero .section-title {
+    margin-bottom: var(--spacing-sm);
+}
+
+.about-hero-subtitle {
+    font-size: var(--font-size-product);
+    color: var(--color-neutral-medium);
+    font-style: italic;
+    margin: 0;
+}
+
+/* About Content Grid */
+.about-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-2xl);
+    align-items: center;
+}
+
+.about-content-grid-reverse {
+    direction: rtl;
+}
+
+.about-content-grid-reverse > * {
+    direction: ltr;
+}
+
+.about-content-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.about-section-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.about-paragraph {
+    font-size: var(--font-size-body);
+    color: var(--color-neutral-medium);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+}
+
+.about-content-image {
+    width: 100%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+.about-content-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Mission Section */
+.about-mission-section {
+    background-color: var(--color-neutral-light);
+}
+
+.about-mission-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.about-mission-text {
+    font-size: 1.125rem;
+    color: var(--color-primary);
+    line-height: var(--line-height-relaxed);
+    font-weight: 400;
+}
+
+/* Values Section */
+.about-values-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.about-value-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.about-value-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-4px);
+    border-color: var(--color-accent-gold);
+}
+
+.about-value-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+    height: 60px;
+}
+
+.about-value-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.about-value-title {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-product);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.about-value-description {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+}
+
+/* Commitment Section */
+.about-commitment-section {
+    background-color: var(--color-neutral-light);
+}
+
+.about-commitment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.about-commitment-item {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+}
+
+.about-commitment-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.about-commitment-title {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+}
+
+.about-commitment-description {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    line-height: var(--line-height-normal);
+    margin: 0;
+}
+
+/* Why Choose Us Section */
+.about-why-section {
+    background-color: var(--color-white);
+}
+
+.about-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.about-stat-card {
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-md);
+    background-color: var(--color-neutral-light);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+}
+
+.about-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.about-stat-number {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-accent-gold);
+    margin-bottom: var(--spacing-xs);
+}
+
+.about-stat-label {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    font-weight: 500;
+}
+
+/* CTA Section */
+.about-cta-section {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.about-cta-content {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.about-cta-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-white);
+    margin-bottom: var(--spacing-md);
+}
+
+.about-cta-text {
+    font-size: var(--font-size-body);
+    color: var(--color-white);
+    opacity: 0.9;
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-lg);
+}
+
+.about-cta-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    align-items: center;
+}
+
+.about-cta-section .btn-primary {
+    background-color: var(--color-accent-gold);
+    color: var(--color-primary);
+}
+
+.about-cta-section .btn-primary:hover {
+    opacity: 0.9;
+}
+
+.about-cta-section .btn-secondary {
+    background-color: transparent;
+    color: var(--color-white);
+    border-color: var(--color-white);
+}
+
+.about-cta-section .btn-secondary:hover {
+    background-color: var(--color-white);
+    color: var(--color-primary);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 968px) {
+    .about-content-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    .about-content-grid-reverse {
+        direction: ltr;
+    }
+
+    .about-values-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .about-hero {
+        padding: var(--spacing-xl) 0;
+    }
+
+    .about-section-title {
+        font-size: 1.75rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .about-hero {
+        padding: var(--spacing-lg) 0;
+    }
+
+    .about-hero .section-title {
+        font-size: 1.75rem;
+    }
+
+    .about-hero-subtitle {
+        font-size: var(--font-size-body);
+    }
+
+    .about-section-title {
+        font-size: 1.5rem;
+    }
+
+    .about-mission-text {
+        font-size: var(--font-size-body);
+    }
+
+    .about-value-card,
+    .about-stat-card {
+        padding: var(--spacing-md);
+    }
+
+    .about-stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .about-stat-number {
+        font-size: 2rem;
+    }
+
+    .about-cta-buttons {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .about-cta-section .btn {
+        width: 100%;
+    }
+
+    .about-cta-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-paragraph {
+        font-size: var(--font-size-small);
+    }
+
+    .about-value-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .about-value-title {
+        font-size: var(--font-size-body);
+    }
+
+    .about-commitment-item {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .about-commitment-icon {
+        margin-top: 0;
+    }
+}
