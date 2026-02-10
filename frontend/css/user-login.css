@@ -1,0 +1,430 @@
+/* ============================================
+   Login Page - Hero Section
+   ============================================ */
+.login-hero {
+    position: relative;
+    height: 350px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    background-image: url('https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=80');
+    background-size: cover;
+    background-position: center;
+}
+
+.login-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.85) 100%);
+}
+
+.login-hero .container {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-hero-content {
+    text-align: center;
+}
+
+.login-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.login-hero-content .hero-title {
+    margin-bottom: var(--spacing-xs);
+}
+
+.login-hero-content .hero-subtitle {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   Alert Messages
+   ============================================ */
+.alert {
+    padding: var(--spacing-md) 0;
+    margin-bottom: var(--spacing-md);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-error {
+    background-color: #fee;
+    border-top: 2px solid #c33;
+    border-bottom: 2px solid #c33;
+}
+
+.alert-success {
+    background-color: #efe;
+    border-top: 2px solid #3c3;
+    border-bottom: 2px solid #3c3;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.alert-icon {
+    flex-shrink: 0;
+}
+
+.alert-error .alert-icon {
+    color: #c33;
+}
+
+.alert-success .alert-icon {
+    color: #3c3;
+}
+
+.alert-content span {
+    flex: 1;
+    font-size: var(--font-size-body);
+    color: var(--color-primary);
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-neutral-medium);
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.alert-close:hover {
+    color: var(--color-primary);
+}
+
+.alert-close:focus {
+    outline: none;
+}
+
+/* ============================================
+   Auth Toggle
+   ============================================ */
+.auth-toggle {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+    margin-top: calc(var(--spacing-2xl) * -0.5);
+}
+
+.toggle-btn {
+    padding: 0.75rem 2rem;
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    font-family: var(--font-body);
+    background-color: var(--color-white);
+    color: var(--color-neutral-medium);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background-color: var(--color-neutral-light);
+}
+
+.toggle-btn.active {
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+    border-color: var(--color-secondary);
+}
+
+/* ============================================
+   Auth Container
+   ============================================ */
+.auth-container {
+    display: none;
+    max-width: 550px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.auth-container.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Auth Card
+   ============================================ */
+.auth-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-card);
+}
+
+.auth-subtitle {
+    text-align: center;
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    margin-bottom: var(--spacing-lg);
+    line-height: var(--line-height-relaxed);
+}
+
+/* ============================================
+   Auth Form
+   ============================================ */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    color: var(--color-primary);
+}
+
+.required {
+    color: #c33;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: var(--font-size-body);
+    font-family: var(--font-body);
+    color: var(--color-primary);
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+}
+
+.form-input.error {
+    border-color: #c33;
+}
+
+.form-input.error:focus {
+    box-shadow: 0 0 0 3px rgba(204, 51, 51, 0.1);
+}
+
+.form-input.success {
+    border-color: #3c3;
+}
+
+.form-input.success:focus {
+    box-shadow: 0 0 0 3px rgba(51, 204, 51, 0.1);
+}
+
+.form-error {
+    font-size: 0.8rem;
+    color: #c33;
+    margin-top: -0.25rem;
+    min-height: 1.2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+/* ============================================
+   Password Toggle
+   ============================================ */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .form-input {
+    padding-right: 2.5rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-neutral-medium);
+    transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: var(--color-primary);
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* ============================================
+   Form Options
+   ============================================ */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: calc(var(--spacing-xs) * -1);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--font-size-small);
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.forgot-link {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   Auth Switch Links
+   ============================================ */
+.auth-switch {
+    text-align: center;
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-medium);
+    margin-top: var(--spacing-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+.switch-link {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.switch-link:hover {
+    color: var(--color-neutral-medium);
+}
+
+.terms-link {
+    color: var(--color-primary);
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.terms-link:hover {
+    color: var(--color-neutral-medium);
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 968px) {
+    .login-hero {
+        height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-hero {
+        height: 250px;
+    }
+
+    .login-hero-content .hero-title {
+        font-size: 2rem;
+    }
+
+    .auth-card {
+        padding: var(--spacing-lg);
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .toggle-btn {
+        padding: 0.625rem 1.5rem;
+        font-size: var(--font-size-small);
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .auth-toggle {
+        width: 100%;
+        padding: 0 var(--spacing-sm);
+    }
+
+    .toggle-btn {
+        flex: 1;
+    }
+}
