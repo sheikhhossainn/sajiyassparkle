@@ -630,10 +630,7 @@
 /* ============================================
    Nav Active State
    ============================================ */
-.nav-links a.active {
-    color: var(--color-accent-gold);
-    font-weight: 600;
-}
+/* Removed to prevent navbar shifting */
 
 /* ============================================
    Responsive Design
