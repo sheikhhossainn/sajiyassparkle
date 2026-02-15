@@ -461,7 +461,9 @@ function toggleWishlist(productId) {
 // Update cart count
 function updateCartCount() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
+    if (cartCount) {
+        cartCount.textContent = totalItems;
+    }
 }
 
 // Show notification
