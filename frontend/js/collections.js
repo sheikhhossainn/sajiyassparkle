@@ -308,7 +308,7 @@ function createProductCard(product, index) {
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
                 <p class="product-category">${formatCategory(product.category)}</p>
-                <p class="product-price">₹${product.price.toLocaleString('en-IN')}</p>
+                <p class="product-price">BDT ${product.price.toLocaleString('en-BD')}</p>
                 <button class="btn btn-primary add-to-cart-btn ${isInCart ? 'in-cart' : ''}" data-product-id="${product.id}">
                     ${isInCart ? 'In Cart' : 'Add to Cart'}
                 </button>
@@ -339,7 +339,7 @@ function formatCategory(category) {
         'necklaces': 'Necklaces',
         'earrings': 'Earrings',
         'bracelets': 'Bracelets',
-        'bridal': 'Bridal Collection'
+        'bridal': 'Others'
     };
     return categoryMap[category] || category;
 }

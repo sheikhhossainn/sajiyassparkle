@@ -66,7 +66,7 @@ const ordersData = [
 
 // Function to format price
 function formatPrice(price) {
-    return `₹${price.toLocaleString('en-IN')}`;
+    return `BDT ${price.toLocaleString('en-BD')}`;
 }
 
 // Function to get status display text
