@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span class="product-material">${product.material}</span>
                 </td>
                 <td>
-                    <span class="product-price">₹${finalPrice.toLocaleString('en-IN')}</span>
+                    <span class="product-price">BDT ${finalPrice.toLocaleString('en-BD')}</span>
                     ${product.discount > 0 ? `<span class="product-discount">${product.discount}% off</span>` : ''}
                 </td>
                 <td>
