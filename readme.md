@@ -1,53 +1,110 @@
-## 📚 Group Project Workflow with Git
+# Sajiyas Sparkle
 
-This guide explains how our team collaborates on this project using Git and GitHub. Follow these steps carefully to avoid conflicts and keep the code organized.
+Welcome to the **Sajiyas Sparkle** e-commerce project! This repository houses the frontend codebase for our jewelry store, now powered by **Vite** for a modern development experience and **Supabase** for backend services (Database, Auth, Storage).
+
+## 🚀 Getting Started
+
+Follow these instructions to set up the project on your local machine.
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [Git](https://git-scm.com/)
+
+### Installation
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/sheikhhossainn/sajiyassparkle.git
+    cd sajiyassparkle
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Environment Setup**
+    Create a `.env` file in the root directory by copying the example file:
+    ```bash
+    cp .env.example .env
+    ```
+    Open `.env` and fill in your Supabase credentials:
+    ```env
+    VITE_SUPABASE_URL=your_project_url
+    VITE_SUPABASE_ANON_KEY=your_anon_key
+    ```
+    *(Ask the team lead for the credentials if you don't have them)*
+
+### Running the Project
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+This will launch the application at `http://localhost:3000` (or another port if 3000 is busy).
+
+### Building for Production
+
+To create a production-ready build:
+
+```bash
+npm run build
+```
+
+The output will be in the `dist/` directory.
+
+You can preview the production build locally:
+
+```bash
+npm run preview
+```
 
 ---
+
+## 📚 Updated Project Workflow
+
+This guide explains how our team collaborates using Git and GitHub.
 
 ### 🧑‍🤝‍🧑 Team Structure
 
-- **5 Team Members**: Each works on their own feature branch
-- **1 Team Lead**: Reviews and merges all Pull Requests
-
----
+- **Team Members**: Work on feature branches.
+- **Team Lead**: Reviews and merges Pull Requests.
 
 ### 🌳 Branch Structure
 
 ```
-main          → Final, stable code (protected, no direct pushes)
+main          → Final, stable code (protected)
   ↑
-dev           → Development branch (protected, no direct pushes)
+dev           → Development branch (integration)
   ↑
 feature/*     → Your personal working branches
 ```
 
----
-
 ### ⚠️ Golden Rules
 
 - ❌ **Never push directly to `main` or `dev`**
-- ✅ **Always work in your own `feature/<task-name>` branch**
+- ✅ **Always work in a `feature/<task-name>` branch**
 - ✅ **All changes must go through a Pull Request (PR)**
-- ✅ **Only the team lead merges PRs**
+
+### 🚀 Workflow Steps
+
+1.  **Pull Latest Code**: `git checkout dev && git pull origin dev`
+2.  **Create Branch**: `git checkout -b feature/my-new-feature`
+3.  **Code & Commit**: Make changes and commit often.
+4.  **Push**: `git push origin feature/my-new-feature`
+5.  **Create PR**: Open a Pull Request on GitHub targeting `dev`.
 
 ---
 
-### 🚀 Step-by-Step Workflow
+## 🛠 Tech Stack
 
-#### **Step 1: Clone the Repository (First Time Only)**
-
-```bash
-git clone https://github.com/sheikhhossainn/sajiyassparkle.git
-cd sajiyassparkle
-```
-
----
-
-#### **Step 2: Pull the Latest `dev` Branch**
-
-Before starting any new work, make sure you have the latest code:
-
-```bash
+- **Frontend**: HTML, CSS, JavaScript
+- **Build Tool**: Vite
+- **Backend/Database**: Supabase
+- **Hosting**: Vercel
 git checkout dev
 git pull origin dev
 ```
