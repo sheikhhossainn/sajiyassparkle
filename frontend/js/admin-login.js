@@ -1,12 +1,11 @@
+import { supabase } from './supabase.js';
+
 // ============================================
-// SECURITY: Secret URL Access Control
-// Access this page via: admin-login.html#-Sa7iyA
+// Admin Login - JavaScript
 // ============================================
 
-const SECRET_KEY = '-Sa7iyA';
-
-function initializeToggleFunctionality() {
-    console.log('Initializing toggle functionality...');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin Login loaded');
 
     // Get DOM elements
     const loginToggle = document.getElementById('loginToggle');
@@ -15,15 +14,8 @@ function initializeToggleFunctionality() {
     const registerForm = document.getElementById('registerForm');
     const switchToRegister = document.getElementById('switchToRegister');
     const switchToLogin = document.getElementById('switchToLogin');
-
-    // Check if elements exist
-    if (!loginToggle || !registerToggle || !loginForm || !registerForm) {
-        console.error('Required elements not found, retrying...');
-        setTimeout(initializeToggleFunctionality, 100);
-        return;
-    }
-
-    console.log('All elements found successfully');
+    const loginFormElement = document.getElementById('loginFormElement');
+    const registerFormElement = document.getElementById('registerFormElement');
 
     // Toggle to login form
     function showLoginForm() {
@@ -31,7 +23,12 @@ function initializeToggleFunctionality() {
         registerToggle.classList.remove('active');
         loginForm.classList.add('active');
         registerForm.classList.remove('active');
-        console.log('Switched to login form');
+        
+        // Ensure Google Sign In (if added) is visible on login only
+        const googleBtn = document.getElementById('adminGoogleSignInBtn');
+        const googleDivider = document.querySelector('.google-divider');
+        if(googleBtn) googleBtn.style.display = 'flex';
+        if(googleDivider) googleDivider.style.display = 'block';
     }
 
     // Toggle to register form
@@ -40,14 +37,114 @@ function initializeToggleFunctionality() {
         loginToggle.classList.remove('active');
         registerForm.classList.add('active');
         loginForm.classList.remove('active');
-        console.log('Switched to register form');
+        
+        // Hide Google Sign In on register
+        const googleBtn = document.getElementById('adminGoogleSignInBtn');
+        const googleDivider = document.querySelector('.google-divider');
+        if(googleBtn) googleBtn.style.display = 'none';
+        if(googleDivider) googleDivider.style.display = 'none';
     }
 
     // Event listeners for toggle buttons
-    loginToggle.addEventListener('click', function() {
-        console.log('Login toggle clicked');
-        showLoginForm();
-    });
+    if(loginToggle) loginToggle.addEventListener('click', showLoginForm);
+    if(registerToggle) registerToggle.addEventListener('click', showRegisterForm);
+    if(switchToRegister) switchToRegister.addEventListener('click', (e) => { e.preventDefault(); showRegisterForm(); });
+    if(switchToLogin) switchToLogin.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
+
+    // ------------------------------------------------------------------
+    // Admin Login Logic
+    // ------------------------------------------------------------------
+    if (loginFormElement) {
+        loginFormElement.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                // Check if user is actually an admin
+                checkAdminStatus(data.user.id);
+
+            } catch (err) {
+                alert('Login failed: ' + err.message);
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Admin Register Logic (Similar to User, but handled same way)
+    // ------------------------------------------------------------------
+    if (registerFormElement) {
+        registerFormElement.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            // Additional fields logic here if needed
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    // Note: This creates a regular user. They must be promoted to admin manually in DB
+                    // or via a secret code logic (not implemented for simplicity/security here)
+                });
+
+                if (error) throw error;
+                
+                alert('Admin account created! Contact main admin to approve access.');
+                showLoginForm();
+
+            } catch (err) {
+                alert('Registration failed: ' + err.message);
+            }
+        });
+    }
+    
+    // ------------------------------------------------------------------
+    // Google Sign In for Admin
+    // ------------------------------------------------------------------
+    const googleBtn = document.getElementById('adminGoogleSignInBtn');
+    if (googleBtn) {
+        googleBtn.addEventListener('click', async () => {
+             const { data, error } = await supabase.auth.signInWithOAuth({
+                 provider: 'google',
+                 options: {
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
+                 }
+             });
+             if (error) alert('Google Sign In Error: ' + error.message);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Check Admin Status Helper
+    // ------------------------------------------------------------------
+    async function checkAdminStatus(userId) {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', userId)
+            .single();
+            
+        if (error || !profile || !profile.is_admin) {
+            alert('Access Denied. You are not an administrator.');
+            await supabase.auth.signOut();
+            return;
+        }
+        
+        // Success
+        window.location.href = 'admin-dashboard.html';
+    }
+});
     
     registerToggle.addEventListener('click', function() {
         console.log('Register toggle clicked');

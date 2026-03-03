@@ -146,10 +146,63 @@ create policy "Admin Upload"
     and exists ( select 1 from public.profiles where id = auth.uid() and is_admin = true )
   );
 
--- Policy: Admin Delete Access
-create policy "Admin Delete"
-  on storage.objects for delete
-  using ( 
-    bucket_id = 'products' 
-    and exists ( select 1 from public.profiles where id = auth.uid() and is_admin = true )
+-- ==========================================
+-- 6. TRIGGERS (Auto-Profile Creation)
+-- ==========================================
+
+-- Function to handle new user signup
+create or replace function public.handle_new_user()
+returns trigger as $$
+declare
+  raw_full_name text;
+  raw_first_name text;
+  raw_last_name text;
+begin
+  -- Get user metadata safely
+  raw_full_name := new.raw_user_meta_data->>'full_name';
+  raw_first_name := new.raw_user_meta_data->>'first_name';
+  raw_last_name := new.raw_user_meta_data->>'last_name';
+  
+  -- If first/last name not available, try to parse full_name or email
+  if raw_first_name is null then
+    if raw_full_name is not null then
+       raw_first_name := split_part(raw_full_name, ' ', 1);
+       raw_last_name := split_part(raw_full_name, ' ', 2);
+    else
+       raw_first_name := split_part(new.email, '@', 1);
+    end if;
+  end if;
+
+  insert into public.profiles (id, email, username, is_admin)
+  values (
+    new.id, 
+    new.email, 
+    coalesce(raw_full_name, raw_first_name || ' ' || coalesce(raw_last_name, ''), split_part(new.email, '@', 1)),
+    false
   );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to call the function on new user creation
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- ==========================================
+-- 7. ACCOUNT MANAGEMENT (RPC Functions)
+-- ==========================================
+
+-- Function to allow users to delete their own account
+-- This must be SECURITY DEFINER to allow users to delete their own auth record
+create or replace function delete_user_account()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  -- Delete the user from auth.users table
+  -- This will cascade to public.profiles if foreign key is set correctly
+  delete from auth.users where id = auth.uid();
+end;
+$$;

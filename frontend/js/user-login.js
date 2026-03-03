@@ -4,7 +4,9 @@ import { supabase } from './supabase.js';
 // User Login & Registration - JavaScript
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
+function initializeAuth() {
+    console.log("Initializing Auth Logic...");
+
     // Form Toggle Functionality
     const loginToggle = document.getElementById('loginToggle');
     const registerToggle = document.getElementById('registerToggle');
@@ -13,24 +15,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const switchToRegister = document.getElementById('switchToRegister');
     const switchToLogin = document.getElementById('switchToLogin');
 
+    if (!loginToggle || !registerToggle) {
+        console.error("Auth toggles not found!");
+        return;
+    }
+
     // Toggle to Login Form
     function showLoginForm() {
+        console.log("Switching to Login Form");
         loginToggle.classList.add('active');
         registerToggle.classList.remove('active');
         loginFormContainer.classList.add('active');
         registerFormContainer.classList.remove('active');
         clearAllErrors();
         hideAllAlerts();
+        
+        // Show Google Button when on Login
+        const googleBtn = document.getElementById('googleSignInBtn');
+        const googleDivider = document.querySelector('.google-divider'); 
+        if(googleBtn) googleBtn.style.display = 'flex';
+        if(googleDivider) googleDivider.style.display = 'block';
     }
 
     // Toggle to Register Form
     function showRegisterForm() {
+        console.log("Switching to Register Form");
         registerToggle.classList.add('active');
         loginToggle.classList.remove('active');
         registerFormContainer.classList.add('active');
         loginFormContainer.classList.remove('active');
         clearAllErrors();
         hideAllAlerts();
+
+        // Hide Google Button when on Register
+        const googleBtn = document.getElementById('googleSignInBtn');
+        const googleDivider = document.querySelector('.google-divider');
+        if(googleBtn) googleBtn.style.display = 'none';
+        if(googleDivider) googleDivider.style.display = 'none';
     }
 
     // Event Listeners for Toggle Buttons
@@ -44,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         showLoginForm();
     });
+
 
     // ============================================
     // Password Toggle Functionality
@@ -292,6 +314,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form Submission
     // ============================================
     
+    // Google Sign In
+    const googleBtn = document.getElementById('googleSignInBtn');
+    if (googleBtn) {
+        googleBtn.addEventListener('click', async () => {
+             const { data, error } = await supabase.auth.signInWithOAuth({
+                 provider: 'google',
+                  options: {
+                    queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                    },
+                },
+             });
+             
+             if (error) {
+                 // console.error('Error logging in with Google:', error);
+                 showErrorAlert('Failed to sign in with Google: ' + error.message);
+             }
+        });
+    }
+
     // Login Form Submission
     const loginFormElement = document.getElementById('loginFormElement');
     loginFormElement.addEventListener('submit', async function(e) {
@@ -350,18 +393,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Register Form Submission
     const registerFormElement = document.getElementById('registerFormElement');
-    registerFormElement.addEventListener('submit', async function(e) {
+    
+    // We need to use cloneNode to ensure we have a fresh form without stacked listeners
+    const newRegisterFormElement = registerFormElement.cloneNode(true);
+    registerFormElement.parentNode.replaceChild(newRegisterFormElement, registerFormElement);
+    
+    newRegisterFormElement.addEventListener('submit', async function(e) {
         e.preventDefault();
         hideAllAlerts();
         
-        const firstName = registerFirstName.value.trim();
-        const lastName = registerLastName.value.trim();
-        const email = registerEmail.value.trim();
-        const phone = registerPhone.value.trim();
-        const password = registerPassword.value;
-        const confirmPassword = registerConfirmPassword.value;
+        // Re-query inputs because the old variables point to the old (removed) DOM nodes!
+        const firstName = document.getElementById('registerFirstName').value.trim();
+        const lastName = document.getElementById('registerLastName').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const phone = document.getElementById('registerPhone').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
         const agreeTerms = document.getElementById('agreeTerms').checked;
+        
         let isValid = true;
+
+        console.log("Register Form Submitted"); // Debugging
 
         // Note: Validation logic remains ...
         // Validate First Name
@@ -439,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isValid) {
+            console.log("Validation Passed, sending to Supabase...");
             try {
                 const { data, error } = await supabase.auth.signUp({
                     email: email,
@@ -453,23 +506,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (error) {
+                    console.error("Supabase Error:", error);
                     showErrorAlert(error.message);
                     return;
                 }
 
+                console.log("Supabase Success:", data);
                 showSuccessAlert('Account created successfully! Please check your email for confirmation link before logging in.');
                 
                 // Switch to login after 3 seconds
                 setTimeout(() => {
                     showLoginForm();
-                    registerFormElement.reset();
+                    newRegisterFormElement.reset();
                 }, 3000);
             } catch (err) {
                 showErrorAlert('An unexpected error occurred. Please try again.');
                 console.error(err);
             }
         } else {
+            console.log("Validation Failed");
             showErrorAlert('Please correct the errors in the form and try again.');
         }
     });
-});
+}
+
+// Start immediately
+initializeAuth();
