@@ -1,3 +1,5 @@
+import { supabase } from './supabase.js';
+
 // ============================================
 // User Login & Registration - JavaScript
 // ============================================
@@ -292,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Login Form Submission
     const loginFormElement = document.getElementById('loginFormElement');
-    loginFormElement.addEventListener('submit', function(e) {
+    loginFormElement.addEventListener('submit', async function(e) {
         e.preventDefault();
         hideAllAlerts();
         
@@ -320,14 +322,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isValid) {
-            // Simulate successful login (replace with actual API call)
-            showSuccessAlert('Login successful! Redirecting to your account...');
-            
-            // Simulate redirect after 2 seconds
-            setTimeout(() => {
-                // window.location.href = 'profile.html';
-                console.log('Would redirect to profile page');
-            }, 2000);
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    showErrorAlert(error.message);
+                    return;
+                }
+
+                showSuccessAlert('Login successful! Redirecting to your account...');
+                
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 2000);
+            } catch (err) {
+                showErrorAlert('An unexpected error occurred. Please try again.');
+                console.error(err);
+            }
         } else {
             showErrorAlert('Please correct the errors in the form and try again.');
         }
@@ -335,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Register Form Submission
     const registerFormElement = document.getElementById('registerFormElement');
-    registerFormElement.addEventListener('submit', function(e) {
+    registerFormElement.addEventListener('submit', async function(e) {
         e.preventDefault();
         hideAllAlerts();
         
@@ -348,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const agreeTerms = document.getElementById('agreeTerms').checked;
         let isValid = true;
 
+        // Note: Validation logic remains ...
         // Validate First Name
         if (firstName === '') {
             showFieldError('registerFirstName', 'registerFirstNameError', 'First name is required');
@@ -423,14 +439,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isValid) {
-            // Simulate successful registration (replace with actual API call)
-            showSuccessAlert('Account created successfully! Redirecting to login...');
-            
-            // Simulate redirect after 2 seconds
-            setTimeout(() => {
-                showLoginForm();
-                registerFormElement.reset();
-            }, 2000);
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            phone: phone
+                        }
+                    }
+                });
+
+                if (error) {
+                    showErrorAlert(error.message);
+                    return;
+                }
+
+                showSuccessAlert('Account created successfully! Please check your email for confirmation link before logging in.');
+                
+                // Switch to login after 3 seconds
+                setTimeout(() => {
+                    showLoginForm();
+                    registerFormElement.reset();
+                }, 3000);
+            } catch (err) {
+                showErrorAlert('An unexpected error occurred. Please try again.');
+                console.error(err);
+            }
         } else {
             showErrorAlert('Please correct the errors in the form and try again.');
         }

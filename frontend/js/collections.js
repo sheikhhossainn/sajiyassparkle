@@ -1,8 +1,10 @@
+import { supabase } from './supabase.js';
+
 // Unified Shop Page JavaScript
 // Combines category browsing with product listing
 
 // Sample product data
-const productsData = [
+let productsData = [
     { id: 1, name: "Diamond Solitaire Ring", category: "rings", price: 45000, image: "ring1.jpg", featured: true, date: "2026-02-01" },
     { id: 2, name: "Gold Engagement Ring", category: "rings", price: 32000, image: "ring2.jpg", featured: true, date: "2026-01-28" },
     { id: 3, name: "Pearl Necklace Set", category: "necklaces", price: 28000, image: "necklace1.jpg", featured: false, date: "2026-01-25" },
@@ -59,7 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Initialize page
-function initializePage() {
+async function initializePage() {
+    // Show loading state while fetching potentially
+    try {
+        const { data, error } = await supabase.from('products').select('*');
+        if (!error && data && data.length > 0) {
+            productsData = data;
+            // Update current products based on new data
+            currentProducts = [...productsData];
+            console.log('Loaded products from Supabase');
+        } else {
+            console.log('Using mock product data (Supabase fetch empty/error)');
+        }
+    } catch (e) {
+        console.warn('Supabase fetch failed, using mock data:', e);
+    }
+
     // Check URL parameters for category
     const urlParams = new URLSearchParams(window.location.search);
     const urlCategory = urlParams.get('category');
