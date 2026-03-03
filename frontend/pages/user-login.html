@@ -140,6 +140,22 @@
                         <h2 class="section-title" style="font-size: 1.75rem; margin-bottom: var(--spacing-xs);">Welcome Back</h2>
                         <p class="auth-subtitle">Sign in to your account to continue your shopping experience</p>
                         
+                        <!-- Google Sign In Button -->
+                        <button id="googleSignInBtn" class="btn btn-outline" style="width: 100%; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23.5 12.27c0-.86-.07-1.68-.21-2.48H12v4.69h6.46a5.52 5.52 0 0 1-2.4 3.63v3H20a11.53 11.53 0 0 0 3.5-8.84Z" fill="#4285F4"/>
+                                <path d="M12 24a11.45 11.45 0 0 0 7.94-2.91l-3.88-3a7.22 7.22 0 0 1-4.06 1.14 7.23 7.23 0 0 1-6.81-5H1.32v3.13A11.95 11.95 0 0 0 12 24Z" fill="#34A853"/>
+                                <path d="M5.19 14.23A7.16 7.16 0 0 1 4.77 12a7.16 7.16 0 0 1 .42-2.23V6.64H1.32A11.94 11.94 0 0 0 0 12a11.94 11.94 0 0 0 1.32 5.36l3.87-3.13Z" fill="#FBBC05"/>
+                                <path d="M12 4.77a6.52 6.52 0 0 1 4.6 1.8L19.98 3.2A11.45 11.45 0 0 0 12 0 11.95 11.95 0 0 0 1.32 6.64l3.87 3.13A7.23 7.23 0 0 1 12 4.77Z" fill="#EA4335"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+
+                        <div class="google-divider" style="text-align: center; margin-bottom: 20px; position: relative;">
+                            <hr style="border: 0; border-top: 1px solid #eee;">
+                            <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #666; font-size: 0.9rem;">or</span>
+                        </div>
+                        
                         <form class="auth-form" id="loginFormElement" novalidate>
                             <div class="form-group">
                                 <label for="loginEmail" class="form-label">Email Address <span class="required">*</span></label>
@@ -212,7 +228,7 @@
                                         id="registerFirstName" 
                                         name="firstName" 
                                         class="form-input" 
-                                        placeholder="John"
+                                        placeholder="Sajiya"
                                         required
                                         autocomplete="given-name">
                                     <div class="form-error" id="registerFirstNameError"></div>
@@ -225,7 +241,7 @@
                                         id="registerLastName" 
                                         name="lastName" 
                                         class="form-input" 
-                                        placeholder="Doe"
+                                        placeholder="Islam"
                                         required
                                         autocomplete="family-name">
                                     <div class="form-error" id="registerLastNameError"></div>
@@ -252,7 +268,7 @@
                                     id="registerPhone" 
                                     name="phone" 
                                     class="form-input" 
-                                    placeholder="+1 (555) 123-4567"
+                                    placeholder="+880 1XXX-XXXXXX"
                                     required
                                     autocomplete="tel">
                                 <div class="form-error" id="registerPhoneError"></div>
@@ -311,7 +327,7 @@
                             <div class="form-group">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                                    <span>I agree to the <a href="#" class="terms-link">Terms & Conditions</a></span>
+                                    <span>I agree to the <a href="terms.html" target="_blank" class="terms-link">Terms & Conditions</a>.</span>
                                 </label>
                                 <div class="form-error" id="registerTermsError"></div>
                             </div>
@@ -337,6 +353,7 @@
     </footer>
 
     <!-- JavaScript -->
+    <script type="module" src="../js/auth-state.js"></script>
     <script type="module" src="../js/user-login.js"></script>
 </body>
 

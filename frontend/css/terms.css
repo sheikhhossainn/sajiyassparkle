@@ -1,0 +1,55 @@
+/* Terms & Conditions Page Styles */
+.terms-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-2xl) var(--spacing-md);
+}
+
+.terms-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-lg);
+}
+
+.terms-title {
+    font-family: var(--font-heading);
+    color: var(--color-primary);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.terms-subtitle {
+    color: var(--color-neutral-medium);
+    font-style: italic;
+}
+
+.terms-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.terms-section-title {
+    font-family: var(--font-heading);
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-md);
+    border-left: 3px solid var(--color-accent);
+    padding-left: var(--spacing-sm);
+}
+
+.terms-text {
+    color: var(--color-text);
+    line-height: 1.8;
+    margin-bottom: var(--spacing-md);
+}
+
+.terms-list {
+    list-style-type: disc;
+    margin-left: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.terms-list li {
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text);
+}
