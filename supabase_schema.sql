@@ -45,6 +45,7 @@ create table products (
   image_url text not null,
   featured boolean default false,
   description text,
+  stock_status text default 'in_stock', -- 'in_stock', 'low_stock', 'out_of_stock'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

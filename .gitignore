@@ -130,3 +130,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Batch upload files
+batch-images/
+output.txt
+batch-upload.js
