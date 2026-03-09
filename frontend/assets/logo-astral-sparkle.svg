@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 60" width="100%" height="100%">
+  <!-- 
+    CONCEPT: "The Astral Starburst"
+    Purely abstract luxury mark. No literal jewelry—just the pure geometry of a sparkle.
+  -->
+
+  <!-- ICON SECTION -->
+  <g transform="translate(10, 0)">
+    <!-- The Orbital Ring (Grounds the mark and adds architectural structure) -->
+    <circle cx="30" cy="30" r="16" fill="none" stroke="#A3A3A3" stroke-width="0.75" />
+    
+    <!-- The Diagonal Secondary Sparkle (Soft Frosted Silver) -->
+    <!-- Rotated 45 degrees to create the 8-point refraction -->
+    <path d="M 30 14 Q 30 26 42 30 Q 30 34 30 46 Q 30 34 18 30 Q 30 26 30 14 Z" 
+          fill="#D4D4D4" 
+          transform="rotate(45 30 30)" />
+          
+    <!-- The Primary Vertical/Horizontal Sparkle (Deep Obsidian Black) -->
+    <!-- The curves are mathematically calculated to pierce perfectly through the orbital ring -->
+    <path d="M 30 4 Q 30 26 50 30 Q 30 34 30 56 Q 30 34 10 30 Q 30 26 30 4 Z" 
+          fill="#0A0A0A" />
+          
+    <!-- The Core Void (A tiny negative-space dot in the very center to give it breathing room) -->
+    <circle cx="30" cy="30" r="1.5" fill="#FFFFFF" />
+  </g>
+
+  <!-- TYPOGRAPHY SECTION -->
+  <!-- 
+    A strict luxury layout: High-contrast serif for the brand name, 
+    anchored by an ultra-minimalist, widely spaced sans-serif subtitle. 
+  -->
+  
+  <text x="80" y="34" 
+        font-family="'Didot', 'Playfair Display', 'Bodoni MT', 'Times New Roman', serif" 
+        font-size="22" 
+        font-weight="500" 
+        fill="#0A0A0A" 
+        letter-spacing="4">
+    SAJIYA'S SPARKLE
+  </text>
+  
+  <text x="82" y="48" 
+        font-family="'Montserrat', 'Helvetica Neue', 'Arial', sans-serif" 
+        font-size="8" 
+        font-weight="400" 
+        fill="#737373" 
+        letter-spacing="9">
+    FINE JEWELLERY
+  </text>
+
+</svg>

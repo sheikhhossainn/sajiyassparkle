@@ -57,7 +57,6 @@ updateCartCount();
 document.addEventListener('DOMContentLoaded', () => {
     initializePage();
     attachEventListeners();
-    updateCategoryPillCounts();
 });
 
 // Initialize page
@@ -85,6 +84,9 @@ async function initializePage() {
         selectedCategory = urlCategory;
         updateCategoryPillActive(urlCategory);
     }
+    
+    // Update category counts after data is loaded
+    updateCategoryPillCounts();
     
     renderProducts();
 }
@@ -147,13 +149,29 @@ function updateCategoryPillActive(category) {
 // Update category pill counts
 function updateCategoryPillCounts() {
     categoryPills.forEach(pill => {
-        const category = pill.dataset.category;
+        const category = pill.dataset.category.toLowerCase();
         const countSpan = pill.querySelector('.pill-count');
-        
+
         if (category === 'all') {
             countSpan.textContent = productsData.length;
+        } else if (category.includes('set')) {
+            // For set categories, count number of unique set groups (not individual items)
+            const matchingProducts = productsData.filter(p => {
+                const prodCat = (p.category || '').toLowerCase();
+                if (category === 'setitems' && prodCat === 'setitems') return true;
+                if (category === 'setitems necklace' && prodCat === 'setitems necklace') return true;
+                return prodCat.includes(category) || category.includes(prodCat);
+            });
+            
+            // Group by exact category to get number of sets
+            const uniqueCategories = [...new Set(matchingProducts.map(p => p.category))];
+            countSpan.textContent = uniqueCategories.length;
         } else {
-            const count = productsData.filter(p => p.category === category).length;
+            const count = productsData.filter(p => {
+                const prodCat = (p.category || '').toLowerCase();
+                const singularSelCat = category.endsWith('s') ? category.slice(0, -1) : category;
+                return prodCat.includes(singularSelCat) || category.includes(prodCat);
+            }).length;
             countSpan.textContent = count;
         }
     });
@@ -181,7 +199,22 @@ function handleFilters() {
         
         // Category filter
         if (selectedCategory !== 'all') {
-            filtered = filtered.filter(product => product.category === selectedCategory);
+            filtered = filtered.filter(product => {
+                const prodCat = (product.category || '').toLowerCase();
+                const selCat = selectedCategory.toLowerCase();
+                
+                // Exact match for set items - no fuzzy matching for sets
+                if (selCat === 'setitems') {
+                    return prodCat === 'setitems';
+                }
+                if (selCat === 'setitems necklace') {
+                    return prodCat === 'setitems necklace';
+                }
+                
+                // For non-set items, use fuzzy matching
+                const singularSelCat = selCat.endsWith('s') ? selCat.slice(0, -1) : selCat;
+                return prodCat.includes(singularSelCat) || selCat.includes(prodCat);
+            });
         }
         
         // Search filter
@@ -270,15 +303,40 @@ function switchView(view) {
 
 // Render products
 function renderProducts() {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedProducts = currentProducts.slice(startIndex, endIndex);
+    // Check if we're viewing set items
+    const isSetCategory = selectedCategory.toLowerCase().includes('set');
     
-    // Update results count
-    resultsCount.textContent = currentProducts.length;
+    let itemsToRender;
+    let displayCount;
+    
+    if (isSetCategory) {
+        // Group products by their exact category for sets
+        const setGroups = {};
+        currentProducts.forEach(product => {
+            const cat = product.category;
+            if (!setGroups[cat]) {
+                setGroups[cat] = [];
+            }
+            setGroups[cat].push(product);
+        });
+        
+        // Convert to array of grouped sets
+        itemsToRender = Object.values(setGroups);
+        displayCount = itemsToRender.length;
+        
+        // No pagination for sets - show all
+        resultsCount.textContent = displayCount;
+    } else {
+        // Normal pagination for individual items
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        itemsToRender = currentProducts.slice(startIndex, endIndex);
+        displayCount = currentProducts.length;
+        resultsCount.textContent = displayCount;
+    }
     
     // Show empty state if no products
-    if (currentProducts.length === 0) {
+    if (displayCount === 0) {
         productsGrid.innerHTML = '';
         emptyState.style.display = 'flex';
         pagination.innerHTML = '';
@@ -288,34 +346,111 @@ function renderProducts() {
     emptyState.style.display = 'none';
     
     // Render products with animation
-    productsGrid.innerHTML = paginatedProducts.map((product, index) => {
-        return createProductCard(product, index);
-    }).join('');
+    if (isSetCategory) {
+        productsGrid.innerHTML = itemsToRender.map((setProducts, index) => {
+            return createSetCard(setProducts, index);
+        }).join('');
+    } else {
+        productsGrid.innerHTML = itemsToRender.map((product, index) => {
+            return createProductCard(product, index);
+        }).join('');
+    }
     
     // Animate products in
     animateProductCards();
     
-    // Render pagination
-    renderPagination();
+    // Render pagination (only for non-set categories)
+    if (!isSetCategory) {
+        renderPagination();
+    } else {
+        pagination.innerHTML = '';
+    }
     
     // Attach product event listeners
     attachProductListeners();
 }
 
 // Create product card HTML
+// Create a set card showing all items in the set
+function createSetCard(setProducts, index) {
+    // Calculate total price for the set
+    const totalPrice = setProducts.reduce((sum, p) => sum + (p.price || 0), 0);
+    const setCategory = setProducts[0].category;
+    const setName = setCategory === 'Setitems' ? 'Jewelry Set' : 'Jewelry Set Necklace';
+    const itemCount = setProducts.length;
+    
+    // Check stock status - if any item is out of stock, whole set is out of stock
+    const isOutOfStock = setProducts.some(p => (p.stock_status || 'in_stock') === 'out_of_stock');
+    const stockStatus = isOutOfStock ? 'out_of_stock' : 'in_stock';
+    
+    // Create a grid of all images in the set
+    const imagesHTML = setProducts.map(product => {
+        const imageUrl = product.image_url || product.image;
+        const isFullUrl = imageUrl && imageUrl.startsWith('http');
+        return isFullUrl
+            ? `<img src="${imageUrl}" alt="${product.name}" class="set-image-item ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+            : '';
+    }).join('');
+    
+    // Check if any item from this set is in cart
+    const setInCart = setProducts.some(p => cart.some(item => item.id === p.id));
+    const setProductIds = setProducts.map(p => p.id).join(',');
+    
+    return `
+        <div class="product-card set-item-card ${isOutOfStock ? 'out-of-stock' : ''}" data-set-ids="${setProductIds}" style="animation-delay: ${index * 0.05}s">
+            <div class="product-image-wrapper set-images-grid">
+                ${imagesHTML}
+                <span class="product-badge set-badge">Complete Set - ${itemCount} Items</span>
+                ${isOutOfStock ? '<span class="stock-badge out-of-stock-badge">Out of Stock</span>' : '<span class="stock-badge in-stock-badge">In Stock</span>'}
+                <button class="wishlist-btn" data-product-id="${setProducts[0].id}" aria-label="Add to wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="product-info">
+                <h3 class="product-name" style="font-size: 1.25rem; margin-bottom: 0.5rem;">${setName}</h3>
+                <p class="product-category" style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">${setCategory.toUpperCase()}</p>
+                <p class="set-description" style="font-size: 0.9rem; color: var(--color-accent-gold); font-weight: 600; margin: 0.75rem 0;">✨ Complete jewelry set - ${itemCount} pieces</p>
+                <p class="product-price" style="font-size: 1.5rem; font-weight: 700; color: var(--color-accent-gold); margin: 1rem 0;">BDT ${totalPrice.toLocaleString('en-BD')}</p>
+                <button class="btn btn-primary add-set-to-cart-btn ${setInCart || isOutOfStock ? 'in-cart' : ''}" data-set-ids="${setProductIds}" style="width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600;" ${isOutOfStock ? 'disabled' : ''}>
+                    ${isOutOfStock ? 'Out of Stock' : (setInCart ? 'Set In Cart' : 'Add Complete Set to Cart')}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 function createProductCard(product, index) {
     const isInCart = cart.some(item => item.id === product.id);
     
+    // Check if we have an image URL from Supabase, otherwise mock data image
+    const imageUrl = product.image_url || product.image;
+    
+    // Check if this is a set item
+    const isSetItem = (product.category || '').toLowerCase().includes('set');
+    
+    // Check stock status
+    const stockStatus = product.stock_status || 'in_stock';
+    const isOutOfStock = stockStatus === 'out_of_stock';
+    
+    // Fallback placeholder logic
+    const isFullUrl = imageUrl && imageUrl.startsWith('http');
+    const imageHTML = isFullUrl
+        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+        : `<div class="product-image-placeholder">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5"/>
+                  <path d="M12 2L8 10H16L12 2Z" fill="#f0e68c"/>
+              </svg>
+          </div>`;
+
     return `
-        <div class="product-card" data-product-id="${product.id}" style="animation-delay: ${index * 0.05}s">
+        <div class="product-card ${isSetItem ? 'set-item-card' : ''} ${isOutOfStock ? 'out-of-stock' : ''}" data-product-id="${product.id}" style="animation-delay: ${index * 0.05}s">
             <div class="product-image-wrapper">
-                <div class="product-image-placeholder">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5"/>
-                        <path d="M12 2L8 10H16L12 2Z" fill="#f0e68c"/>
-                    </svg>
-                </div>
-                ${product.featured ? '<span class="product-badge">Featured</span>' : ''}
+                ${imageHTML}
+                ${isSetItem ? '<span class="product-badge set-badge">Complete Set</span>' : (product.featured ? '<span class="product-badge">Featured</span>' : '')}
+                ${isOutOfStock ? '<span class="stock-badge out-of-stock-badge">Out of Stock</span>' : '<span class="stock-badge in-stock-badge">In Stock</span>'}
                 <button class="wishlist-btn" data-product-id="${product.id}" aria-label="Add to wishlist">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2"/>
@@ -325,9 +460,10 @@ function createProductCard(product, index) {
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
                 <p class="product-category">${formatCategory(product.category)}</p>
+                ${isSetItem ? '<p class="set-description" style="font-size: 0.85rem; color: var(--color-accent-gold); font-weight: 500; margin: 4px 0;">✨ Complete jewelry set - Buy as a bundle</p>' : ''}
                 <p class="product-price">BDT ${product.price.toLocaleString('en-BD')}</p>
-                <button class="btn btn-primary add-to-cart-btn ${isInCart ? 'in-cart' : ''}" data-product-id="${product.id}">
-                    ${isInCart ? 'In Cart' : 'Add to Cart'}
+                <button class="btn btn-primary add-to-cart-btn ${isInCart || isOutOfStock ? 'in-cart' : ''}" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+                    ${isOutOfStock ? 'Out of Stock' : (isInCart ? 'In Cart' : isSetItem ? 'Add Set to Cart' : 'Add to Cart')}
                 </button>
             </div>
         </div>
@@ -414,7 +550,19 @@ function renderPagination() {
             if (page && page !== currentPage) {
                 currentPage = page;
                 renderProducts();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Scroll to products grid instead of top
+                const productsGrid = document.getElementById('products-grid');
+                if (productsGrid) {
+                    const offset = 100; // Offset to show some context above
+                    const elementPosition = productsGrid.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
             }
         });
     });
@@ -427,6 +575,14 @@ function attachProductListeners() {
         btn.addEventListener('click', (e) => {
             const productId = parseInt(e.target.dataset.productId);
             addToCart(productId);
+        });
+    });
+    
+    // Add set to cart buttons
+    document.querySelectorAll('.add-set-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const setIds = e.target.dataset.setIds.split(',').map(id => parseInt(id));
+            addSetToCart(setIds, e.target);
         });
     });
     
@@ -464,6 +620,36 @@ function addToCart(productId) {
     }
     
     showNotification('Added to cart!', 'success');
+}
+
+// Add complete set to cart
+function addSetToCart(setIds, btn) {
+    const setProducts = productsData.filter(p => setIds.includes(p.id));
+    if (setProducts.length === 0) return;
+    
+    // Check if any item from the set is already in cart
+    const alreadyInCart = setProducts.some(p => cart.some(item => item.id === p.id));
+    
+    if (alreadyInCart) {
+        showNotification('Some items from this set are already in cart!', 'info');
+        return;
+    }
+    
+    // Add all items from the set to cart
+    setProducts.forEach(product => {
+        cart.push({ ...product, quantity: 1 });
+    });
+    
+    localStorage.setItem('sajiyasCart', JSON.stringify(cart));
+    updateCartCount();
+    
+    // Update button state
+    if (btn) {
+        btn.textContent = 'Set In Cart';
+        btn.classList.add('in-cart');
+    }
+    
+    showNotification(`Complete set added to cart! (${setProducts.length} items)`, 'success');
 }
 
 // Toggle wishlist
