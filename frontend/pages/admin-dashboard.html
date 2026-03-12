@@ -235,48 +235,17 @@
         <!-- Product Inventory Section -->
         <section class="section">
             <div class="container">
-                <h2 class="section-title">Product Inventory</h2>
-                <div class="grid grid-3">
-                    <!-- Product Card 1 -->
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <img src="https://placehold.co/400x300/f5f5f5/d4af37?text=Gold+Necklace"
-                                alt="Gold Necklace">
-                            <span class="stock-badge stock-high">In Stock: 15</span>
-                        </div>
-                        <div class="product-card-content">
-                            <h3 class="product-card-title">Gold Necklace</h3>
-                            <p class="product-card-price">BDT 12,500</p>
-                            <button class="btn btn-secondary product-card-button">Edit Product</button>
-                        </div>
+                <div class="product-section-header">
+                    <div>
+                        <h2 class="section-title">Product Inventory</h2>
                     </div>
-
-                    <!-- Product Card 2 -->
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <img src="https://placehold.co/400x300/f5f5f5/c0c0c0?text=Diamond+Ring" alt="Diamond Ring">
-                            <span class="stock-badge stock-low">In Stock: 3</span>
-                        </div>
-                        <div class="product-card-content">
-                            <h3 class="product-card-title">Diamond Ring</h3>
-                            <p class="product-card-price">BDT 25,000</p>
-                            <button class="btn btn-secondary product-card-button">Edit Product</button>
-                        </div>
+                    <div class="product-header-actions">
+                        <input type="text" id="productSearch" class="search-input" placeholder="Search products by name...">
+                        <button id="addProductBtn" class="btn btn-primary">+ Add New Product</button>
                     </div>
-
-                    <!-- Product Card 3 -->
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <img src="https://placehold.co/400x300/f5f5f5/50c878?text=Emerald+Earrings"
-                                alt="Emerald Earrings">
-                            <span class="stock-badge stock-high">In Stock: 22</span>
-                        </div>
-                        <div class="product-card-content">
-                            <h3 class="product-card-title">Emerald Earrings</h3>
-                            <p class="product-card-price">BDT 18,000</p>
-                            <button class="btn btn-secondary product-card-button">Edit Product</button>
-                        </div>
-                    </div>
+                </div>
+                <div class="grid grid-3" id="productsContainer">
+                    <!-- Products will be loaded dynamically here -->
                 </div>
             </div>
         </section>
@@ -289,8 +258,80 @@
         </div>
     </footer>
 
+    <!-- Modals -->
+    
+    <!-- Add/Edit Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Product</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="productForm" class="product-form">
+                <input type="hidden" id="productId" value="">
+                
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" required placeholder="Enter product name">
+                </div>
+
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <input type="text" id="productCategory" placeholder="Enter category (e.g., Necklaces, Rings)">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">Price (BDT) *</label>
+                    <input type="number" id="productPrice" required placeholder="Enter price" min="0" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="productImage">Product Image URL *</label>
+                    <input type="url" id="productImage" required placeholder="Enter image URL">
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="stockStatus">Stock Status *</label>
+                    <select id="stockStatus" required>
+                        <option value="">Select stock status</option>
+                        <option value="In Stock">In Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stockQuantity">Stock Quantity</label>
+                    <input type="number" id="stockQuantity" placeholder="Enter quantity" min="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-confirm">
+            <div class="modal-header">
+                <h2>Delete Product</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteProductName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
-    <script src="../js/admin-dashboard.js"></script>
+    <script type="module" src="../js/admin-dashboard.js"></script>
 </body>
 
 </html>
