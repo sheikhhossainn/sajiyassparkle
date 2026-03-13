@@ -1,0 +1,108 @@
+/* Focused admin dashboard styles */
+.dashboard-header {
+    margin-bottom: 1rem;
+}
+
+.dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.9rem;
+}
+
+.dashboard-stat-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-card);
+}
+
+.dashboard-stat-card .stat-label {
+    color: var(--color-neutral-medium);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-stat-card .stat-value {
+    font-size: 1.6rem;
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.quick-actions-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+    padding: 0.75rem 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.dashboard-table th {
+    background: var(--color-neutral-light);
+    color: var(--color-neutral-medium);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-empty {
+    text-align: center;
+    color: var(--color-neutral-medium);
+    padding: 1.8rem 0.5rem;
+}
+
+.status-pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    text-transform: capitalize;
+}
+
+.status-pill.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-pill.delivered,
+.status-pill.completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pill.processing {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-pill.cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+    .quick-actions-row {
+        flex-direction: column;
+    }
+
+    .quick-actions-row .btn {
+        width: 100%;
+    }
+}

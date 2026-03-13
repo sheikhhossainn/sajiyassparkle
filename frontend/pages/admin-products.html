@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sajiyas Sparkle - Admin Product Management">
+    <title>Sajiyas Sparkle | Product Management</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/admin-products.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Admin Layout -->
+    <div class="admin-layout">
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header-title">Admin Panel</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="admin-dashboard.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="admin-products.html" class="sidebar-link active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" />
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" />
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                    Products
+                </a>
+                <a href="admin-orders.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <line x1="8" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="8" y1="17" x2="12" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Orders
+                </a>
+                <a href="admin-customers.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Customers
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="../index.html" class="sidebar-link sidebar-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" />
+                        <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" />
+                        <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Content Area -->
+            <div class="content-wrapper">
+                <div class="container">
+                    <div class="admin-page-header">
+                        <div class="admin-page-title-wrap">
+                            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" />
+                                    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" />
+                                    <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            </button>
+                            <h1 class="page-title">Product Management</h1>
+                        </div>
+                        <p class="admin-page-subtitle">Create, edit, feature, and remove products from the catalog.</p>
+                    </div>
+
+                    <!-- Add Product Section -->
+                    <section class="content-section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Add New Product</h2>
+                                <p class="card-subtitle">Fill in product details to add to inventory</p>
+                            </div>
+                            <div class="card-body">
+                                <form id="productForm" class="product-form">
+                                    <input type="hidden" id="productId">
+                                    <input type="hidden" id="currentImageUrl">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productName" class="form-label">Product Name *</label>
+                                            <input type="text" id="productName" class="form-input" placeholder="Enter product name" required>
+                                            <span class="form-error" id="productNameError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="productCategory" class="form-label">Category *</label>
+                                            <input type="text" id="productCategory" class="form-input" placeholder="Type category (e.g., necklaces)" required>
+                                            <span class="form-error" id="productCategoryError"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productPrice" class="form-label">Price (BDT) *</label>
+                                            <input type="number" id="productPrice" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+                                            <span class="form-error" id="productPriceError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="productStock" class="form-label">Stock Quantity</label>
+                                            <input type="number" id="productStock" class="form-input" placeholder="0" min="0">
+                                            <span class="form-error" id="productStockError"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productStockStatus" class="form-label">Stock Status *</label>
+                                            <select id="productStockStatus" class="form-input" required>
+                                                <option value="">Select status</option>
+                                                <option value="In Stock">In Stock</option>
+                                                <option value="Out of Stock">Out of Stock</option>
+                                            </select>
+                                            <span class="form-error" id="productStockStatusError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label" for="productFeatured">Homepage Feature</label>
+                                            <label style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;">
+                                                <input type="checkbox" id="productFeatured">
+                                                <span>Show this product on homepage (max 4)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="productDescription" class="form-label">Product Description</label>
+                                        <textarea id="productDescription" class="form-input form-textarea" rows="4" placeholder="Enter product description"></textarea>
+                                        <span class="form-error" id="productDescriptionError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="productImages" class="form-label">Product Image *</label>
+                                        <div class="image-upload-area">
+                                            <input type="file" id="productImages" accept="image/*" hidden>
+                                            <label for="productImages" class="image-upload-label">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor"
+                                                        stroke-width="2" />
+                                                    <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" />
+                                                    <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor"
+                                                        stroke-width="2" />
+                                                </svg>
+                                                <span class="upload-text">Click to upload product image</span>
+                                                <span class="upload-hint">PNG, JPG, WEBP up to 5MB</span>
+                                            </label>
+                                            <div id="imagePreviewContainer" class="image-preview-container"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+                                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none;">Cancel Edit</button>
+                                        <button type="reset" class="btn btn-secondary">Clear Form</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Products List Section -->
+                    <section class="content-section">
+                        <div class="card" style="margin-bottom: var(--spacing-lg);">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Featured Items Manager</h2>
+                                    <p class="card-subtitle">Featured products on homepage: <strong id="featuredManagerCount">0</strong>/4</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="featuredManagerList" class="featured-manager-list"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">All Products</h2>
+                                    <p class="card-subtitle">Manage your product inventory</p>
+                                    <p class="card-subtitle" id="featuredCountInfo">Featured on homepage: 0/4</p>
+                                </div>
+                                <div class="header-actions">
+                                    <button id="deleteSelectedBtn" class="btn btn-danger" disabled>
+                                        Delete Selected (<span id="selectedCount">0</span>)
+                                    </button>
+                                    <div class="search-box">
+                                        <input type="text" id="searchProducts" class="search-input" placeholder="Search products...">
+                                    </div>
+                                    <select id="filterCategory" class="filter-select">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    <input type="checkbox" id="selectAllProducts" aria-label="Select all products">
+                                                </th>
+                                                <th>Image</th>
+                                                <th>Product Name</th>
+                                                <th>Category</th>
+                                                <th>Price</th>
+                                                <th>Stock</th>
+                                                <th>Status</th>
+                                                <th>Featured</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="productsTableBody">
+                                            <!-- Products will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div class="pagination">
+                                    <button class="pagination-btn" id="prevPage">Previous</button>
+                                    <span class="pagination-info">
+                                        Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                                    </span>
+                                    <button class="pagination-btn" id="nextPage">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Delete</h3>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script type="module" src="../js/admin-products.js"></script>
+
+</body>
+
+</html>

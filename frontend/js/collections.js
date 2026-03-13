@@ -1,0 +1,734 @@
+import { supabase } from './supabase.js';
+
+// Unified Shop Page JavaScript
+// Combines category browsing with product listing
+
+// Sample product data
+let productsData = [
+    { id: 1, name: "Diamond Solitaire Ring", category: "rings", price: 45000, image: "ring1.jpg", featured: true, date: "2026-02-01" },
+    { id: 2, name: "Gold Engagement Ring", category: "rings", price: 32000, image: "ring2.jpg", featured: true, date: "2026-01-28" },
+    { id: 3, name: "Pearl Necklace Set", category: "necklaces", price: 28000, image: "necklace1.jpg", featured: false, date: "2026-01-25" },
+    { id: 4, name: "Diamond Pendant Necklace", category: "necklaces", price: 55000, image: "necklace2.jpg", featured: true, date: "2026-02-03" },
+    { id: 5, name: "Ruby Drop Earrings", category: "earrings", price: 18000, image: "earring1.jpg", featured: false, date: "2026-01-20" },
+    { id: 6, name: "Diamond Stud Earrings", category: "earrings", price: 42000, image: "earring2.jpg", featured: true, date: "2026-02-02" },
+    { id: 7, name: "Gold Bangle Bracelet", category: "bracelets", price: 25000, image: "bracelet1.jpg", featured: false, date: "2026-01-15" },
+    { id: 8, name: "Diamond Tennis Bracelet", category: "bracelets", price: 68000, image: "bracelet2.jpg", featured: true, date: "2026-02-04" },
+    { id: 9, name: "Bridal Necklace Set", category: "bridal", price: 125000, image: "bridal1.jpg", featured: true, date: "2026-02-05" },
+    { id: 10, name: "Wedding Ring Set", category: "bridal", price: 95000, image: "bridal2.jpg", featured: true, date: "2026-02-06" },
+    { id: 11, name: "Sapphire Ring", category: "rings", price: 38000, image: "ring3.jpg", featured: false, date: "2026-01-18" },
+    { id: 12, name: "Emerald Necklace", category: "necklaces", price: 72000, image: "necklace3.jpg", featured: false, date: "2026-01-22" },
+    { id: 13, name: "Gold Hoop Earrings", category: "earrings", price: 12000, image: "earring3.jpg", featured: false, date: "2026-01-12" },
+    { id: 14, name: "Silver Charm Bracelet", category: "bracelets", price: 8500, image: "bracelet3.jpg", featured: false, date: "2026-01-10" },
+    { id: 15, name: "Platinum Band Ring", category: "rings", price: 52000, image: "ring4.jpg", featured: true, date: "2026-01-30" },
+    { id: 16, name: "Choker Necklace", category: "necklaces", price: 22000, image: "necklace4.jpg", featured: false, date: "2026-01-14" },
+    { id: 17, name: "Crystal Drop Earrings", category: "earrings", price: 15000, image: "earring4.jpg", featured: false, date: "2026-01-16" },
+    { id: 18, name: "Rose Gold Bracelet", category: "bracelets", price: 19000, image: "bracelet4.jpg", featured: false, date: "2026-01-19" },
+];
+
+// State management
+let currentProducts = [...productsData];
+let currentView = 'grid';
+let currentPage = 1;
+let selectedCategory = 'all';
+const itemsPerPage = 9;
+const WISHLIST_KEY = 'sajiyasWishlist';
+
+// DOM elements
+const productsGrid = document.getElementById('products-grid');
+const searchInput = document.getElementById('search-input');
+const priceFilter = document.getElementById('price-filter');
+const sortBy = document.getElementById('sort-by');
+const gridViewBtn = document.getElementById('grid-view-btn');
+const listViewBtn = document.getElementById('list-view-btn');
+const resultsCount = document.getElementById('results-count');
+const clearFiltersBtn = document.getElementById('clear-filters');
+const loadingState = document.getElementById('loading-state');
+const emptyState = document.getElementById('empty-state');
+const pagination = document.getElementById('pagination');
+const cartCount = document.getElementById('cart-count');
+const toggleFiltersBtn = document.getElementById('toggle-filters');
+const advancedFilters = document.getElementById('advanced-filters');
+const categoryPills = document.querySelectorAll('.category-pill');
+
+// Initialize cart from localStorage
+let cart = JSON.parse(localStorage.getItem('sajiyasCart')) || [];
+let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+updateCartCount();
+
+function isWishlisted(productId) {
+    return wishlist.some(item => Number(item.id) === Number(productId));
+}
+
+function saveWishlist() {
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+    initializePage();
+    attachEventListeners();
+});
+
+// Initialize page
+async function initializePage() {
+    // Show loading state while fetching potentially
+    try {
+        const { data, error } = await supabase
+            .from('products')
+            .select('id,name,category,price,image_url,featured,description,stock_status,created_at');
+        if (!error && data && data.length > 0) {
+            productsData = data;
+            // Update current products based on new data
+            currentProducts = [...productsData];
+            console.log('Loaded products from Supabase');
+        } else {
+            console.log('Using mock product data (Supabase fetch empty/error)');
+        }
+    } catch (e) {
+        console.warn('Supabase fetch failed, using mock data:', e);
+    }
+
+    // Check URL parameters for category
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCategory = urlParams.get('category');
+    
+    if (urlCategory && urlCategory !== 'all') {
+        selectedCategory = urlCategory;
+        updateCategoryPillActive(urlCategory);
+    }
+    
+    // Update category counts after data is loaded
+    updateCategoryPillCounts();
+    
+    renderProducts();
+}
+
+// Event Listeners
+function attachEventListeners() {
+    // Category pills
+    categoryPills.forEach(pill => {
+        pill.addEventListener('click', (e) => {
+            const category = e.currentTarget.dataset.category;
+            handleCategoryChange(category);
+        });
+    });
+    
+    // Advanced filters toggle
+    toggleFiltersBtn.addEventListener('click', toggleAdvancedFilters);
+    
+    // Search and filters
+    searchInput.addEventListener('input', debounce(handleFilters, 300));
+    priceFilter.addEventListener('change', handleFilters);
+    sortBy.addEventListener('change', handleFilters);
+    
+    // View toggle
+    gridViewBtn.addEventListener('click', () => switchView('grid'));
+    listViewBtn.addEventListener('click', () => switchView('list'));
+    
+    // Clear filters
+    clearFiltersBtn.addEventListener('click', clearAllFilters);
+}
+
+// Toggle advanced filters
+function toggleAdvancedFilters() {
+    const isHidden = advancedFilters.style.display === 'none';
+    advancedFilters.style.display = isHidden ? 'block' : 'none';
+    
+    // Rotate chevron icon
+    const chevron = toggleFiltersBtn.querySelector('.chevron');
+    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+// Handle category change
+function handleCategoryChange(category) {
+    selectedCategory = category;
+    updateCategoryPillActive(category);
+    currentPage = 1;
+    handleFilters();
+}
+
+// Update active category pill
+function updateCategoryPillActive(category) {
+    categoryPills.forEach(pill => {
+        if (pill.dataset.category === category) {
+            pill.classList.add('active');
+        } else {
+            pill.classList.remove('active');
+        }
+    });
+}
+
+// Update category pill counts
+function updateCategoryPillCounts() {
+    categoryPills.forEach(pill => {
+        const category = pill.dataset.category.toLowerCase();
+        const countSpan = pill.querySelector('.pill-count');
+
+        if (category === 'all') {
+            countSpan.textContent = productsData.length;
+        } else if (category.includes('set')) {
+            // For set categories, count number of unique set groups (not individual items)
+            const matchingProducts = productsData.filter(p => {
+                const prodCat = (p.category || '').toLowerCase();
+                if (category === 'setitems' && prodCat === 'setitems') return true;
+                if (category === 'setitems necklace' && prodCat === 'setitems necklace') return true;
+                return prodCat.includes(category) || category.includes(prodCat);
+            });
+            
+            // Group by exact category to get number of sets
+            const uniqueCategories = [...new Set(matchingProducts.map(p => p.category))];
+            countSpan.textContent = uniqueCategories.length;
+        } else {
+            const count = productsData.filter(p => {
+                const prodCat = (p.category || '').toLowerCase();
+                const singularSelCat = category.endsWith('s') ? category.slice(0, -1) : category;
+                return prodCat.includes(singularSelCat) || category.includes(prodCat);
+            }).length;
+            countSpan.textContent = count;
+        }
+    });
+}
+
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Handle all filters
+function handleFilters() {
+    showLoading();
+    
+    setTimeout(() => {
+        let filtered = [...productsData];
+        
+        // Category filter
+        if (selectedCategory !== 'all') {
+            filtered = filtered.filter(product => {
+                const prodCat = (product.category || '').toLowerCase();
+                const selCat = selectedCategory.toLowerCase();
+                
+                // Exact match for set items - no fuzzy matching for sets
+                if (selCat === 'setitems') {
+                    return prodCat === 'setitems';
+                }
+                if (selCat === 'setitems necklace') {
+                    return prodCat === 'setitems necklace';
+                }
+                
+                // For non-set items, use fuzzy matching
+                const singularSelCat = selCat.endsWith('s') ? selCat.slice(0, -1) : selCat;
+                return prodCat.includes(singularSelCat) || selCat.includes(prodCat);
+            });
+        }
+        
+        // Search filter
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        if (searchTerm) {
+            filtered = filtered.filter(product => 
+                product.name.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Price filter
+        const selectedPrice = priceFilter.value;
+        if (selectedPrice !== 'all') {
+            filtered = filtered.filter(product => {
+                if (selectedPrice === '50000+') {
+                    return product.price >= 50000;
+                }
+                const [min, max] = selectedPrice.split('-').map(Number);
+                return product.price >= min && product.price <= max;
+            });
+        }
+        
+        // Sort
+        const sortOption = sortBy.value;
+        filtered = sortProducts(filtered, sortOption);
+        
+        currentProducts = filtered;
+        currentPage = 1;
+        
+        hideLoading();
+        renderProducts();
+        
+        // Show/hide clear filters button
+        const hasFilters = searchTerm || selectedPrice !== 'all' || sortOption !== 'featured';
+        clearFiltersBtn.style.display = hasFilters ? 'inline-block' : 'none';
+    }, 300);
+}
+
+// Sort products
+function sortProducts(products, sortOption) {
+    const sorted = [...products];
+    
+    switch(sortOption) {
+        case 'price-low-high':
+            return sorted.sort((a, b) => a.price - b.price);
+        case 'price-high-low':
+            return sorted.sort((a, b) => b.price - a.price);
+        case 'newest':
+            return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+        case 'name-asc':
+            return sorted.sort((a, b) => a.name.localeCompare(b.name));
+        case 'name-desc':
+            return sorted.sort((a, b) => b.name.localeCompare(a.name));
+        case 'featured':
+        default:
+            return sorted.sort((a, b) => b.featured - a.featured);
+    }
+}
+
+// Clear all filters
+function clearAllFilters() {
+    searchInput.value = '';
+    priceFilter.value = 'all';
+    sortBy.value = 'featured';
+    selectedCategory = 'all';
+    updateCategoryPillActive('all');
+    handleFilters();
+}
+
+// Switch view (grid/list)
+function switchView(view) {
+    currentView = view;
+    
+    if (view === 'grid') {
+        gridViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+        productsGrid.classList.remove('list-view');
+        productsGrid.classList.add('grid-view');
+    } else {
+        listViewBtn.classList.add('active');
+        gridViewBtn.classList.remove('active');
+        productsGrid.classList.remove('grid-view');
+        productsGrid.classList.add('list-view');
+    }
+}
+
+// Render products
+function renderProducts() {
+    // Check if we're viewing set items
+    const isSetCategory = selectedCategory.toLowerCase().includes('set');
+    
+    let itemsToRender;
+    let displayCount;
+    
+    if (isSetCategory) {
+        // Group products by their exact category for sets
+        const setGroups = {};
+        currentProducts.forEach(product => {
+            const cat = product.category;
+            if (!setGroups[cat]) {
+                setGroups[cat] = [];
+            }
+            setGroups[cat].push(product);
+        });
+        
+        // Convert to array of grouped sets
+        itemsToRender = Object.values(setGroups);
+        displayCount = itemsToRender.length;
+        
+        // No pagination for sets - show all
+        resultsCount.textContent = displayCount;
+    } else {
+        // Normal pagination for individual items
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        itemsToRender = currentProducts.slice(startIndex, endIndex);
+        displayCount = currentProducts.length;
+        resultsCount.textContent = displayCount;
+    }
+    
+    // Show empty state if no products
+    if (displayCount === 0) {
+        productsGrid.innerHTML = '';
+        emptyState.style.display = 'flex';
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    
+    // Render products with animation
+    if (isSetCategory) {
+        productsGrid.innerHTML = itemsToRender.map((setProducts, index) => {
+            return createSetCard(setProducts, index);
+        }).join('');
+    } else {
+        productsGrid.innerHTML = itemsToRender.map((product, index) => {
+            return createProductCard(product, index);
+        }).join('');
+    }
+    
+    // Animate products in
+    animateProductCards();
+    
+    // Render pagination (only for non-set categories)
+    if (!isSetCategory) {
+        renderPagination();
+    } else {
+        pagination.innerHTML = '';
+    }
+    
+    // Attach product event listeners
+    attachProductListeners();
+}
+
+// Create product card HTML
+// Create a set card showing all items in the set
+function createSetCard(setProducts, index) {
+    // Calculate total price for the set
+    const totalPrice = setProducts.reduce((sum, p) => sum + (p.price || 0), 0);
+    const setCategory = setProducts[0].category;
+    const setName = setCategory === 'Setitems' ? 'Jewelry Set' : 'Jewelry Set Necklace';
+    const itemCount = setProducts.length;
+    
+    // Check stock status - if any item is out of stock, whole set is out of stock
+    const isOutOfStock = setProducts.some(p => (p.stock_status || 'in_stock') === 'out_of_stock');
+    const stockStatus = isOutOfStock ? 'out_of_stock' : 'in_stock';
+    
+    // Create a grid of all images in the set
+    const imagesHTML = setProducts.map(product => {
+        const imageUrl = product.image_url || product.image;
+        const isFullUrl = imageUrl && imageUrl.startsWith('http');
+        return isFullUrl
+            ? `<img src="${imageUrl}" alt="${product.name}" class="set-image-item ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+            : '';
+    }).join('');
+    
+    // Check if any item from this set is in cart
+    const setInCart = setProducts.some(p => cart.some(item => item.id === p.id));
+    const setProductIds = setProducts.map(p => p.id).join(',');
+    
+    return `
+        <div class="product-card set-item-card ${isOutOfStock ? 'out-of-stock' : ''}" data-set-ids="${setProductIds}" style="animation-delay: ${index * 0.05}s">
+            <div class="product-image-wrapper set-images-grid">
+                ${imagesHTML}
+                <span class="product-badge set-badge">Complete Set - ${itemCount} Items</span>
+                ${isOutOfStock ? '<span class="stock-badge out-of-stock-badge">Out of Stock</span>' : '<span class="stock-badge in-stock-badge">In Stock</span>'}
+                <button class="wishlist-btn ${isWishlisted(setProducts[0].id) ? 'active' : ''}" data-product-id="${setProducts[0].id}" aria-label="Add to wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="product-info">
+                <h3 class="product-name" style="font-size: 1.25rem; margin-bottom: 0.5rem;">${setName}</h3>
+                <p class="product-category" style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">${setCategory.toUpperCase()}</p>
+                <p class="set-description" style="font-size: 0.9rem; color: var(--color-accent-gold); font-weight: 600; margin: 0.75rem 0;">✨ Complete jewelry set - ${itemCount} pieces</p>
+                <p class="product-price" style="font-size: 1.5rem; font-weight: 700; color: var(--color-accent-gold); margin: 1rem 0;">BDT ${totalPrice.toLocaleString('en-BD')}</p>
+                <button class="btn btn-primary add-set-to-cart-btn ${setInCart || isOutOfStock ? 'in-cart' : ''}" data-set-ids="${setProductIds}" style="width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600;" ${isOutOfStock ? 'disabled' : ''}>
+                    ${isOutOfStock ? 'Out of Stock' : (setInCart ? 'Set In Cart' : 'Add Complete Set to Cart')}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function createProductCard(product, index) {
+    const isInCart = cart.some(item => item.id === product.id);
+    
+    // Check if we have an image URL from Supabase, otherwise mock data image
+    const imageUrl = product.image_url || product.image;
+    
+    // Check if this is a set item
+    const isSetItem = (product.category || '').toLowerCase().includes('set');
+    
+    // Check stock status
+    const stockStatus = product.stock_status || 'in_stock';
+    const isOutOfStock = stockStatus === 'out_of_stock';
+    
+    // Fallback placeholder logic
+    const isFullUrl = imageUrl && imageUrl.startsWith('http');
+    const imageHTML = isFullUrl
+        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+        : `<div class="product-image-placeholder">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5"/>
+                  <path d="M12 2L8 10H16L12 2Z" fill="#f0e68c"/>
+              </svg>
+          </div>`;
+
+    return `
+        <div class="product-card ${isSetItem ? 'set-item-card' : ''} ${isOutOfStock ? 'out-of-stock' : ''}" data-product-id="${product.id}" style="animation-delay: ${index * 0.05}s">
+            <div class="product-image-wrapper">
+                ${imageHTML}
+                ${isSetItem ? '<span class="product-badge set-badge">Complete Set</span>' : (product.featured ? '<span class="product-badge">Featured</span>' : '')}
+                ${isOutOfStock ? '<span class="stock-badge out-of-stock-badge">Out of Stock</span>' : '<span class="stock-badge in-stock-badge">In Stock</span>'}
+                <button class="wishlist-btn ${isWishlisted(product.id) ? 'active' : ''}" data-product-id="${product.id}" aria-label="Add to wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="product-info">
+                <h3 class="product-name">${product.name}</h3>
+                <p class="product-category">${formatCategory(product.category)}</p>
+                ${isSetItem ? '<p class="set-description" style="font-size: 0.85rem; color: var(--color-accent-gold); font-weight: 500; margin: 4px 0;">✨ Complete jewelry set - Buy as a bundle</p>' : ''}
+                <p class="product-price">BDT ${product.price.toLocaleString('en-BD')}</p>
+                <button class="btn btn-primary add-to-cart-btn ${isInCart || isOutOfStock ? 'in-cart' : ''}" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+                    ${isOutOfStock ? 'Out of Stock' : (isInCart ? 'In Cart' : isSetItem ? 'Add Set to Cart' : 'Add to Cart')}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Animate product cards
+function animateProductCards() {
+    const cards = productsGrid.querySelectorAll('.product-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.4s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 50);
+    });
+}
+
+// Format category name
+function formatCategory(category) {
+    const categoryMap = {
+        'rings': 'Rings',
+        'necklaces': 'Necklaces',
+        'earrings': 'Earrings',
+        'bracelets': 'Bracelets',
+        'bridal': 'Others'
+    };
+    return categoryMap[category] || category;
+}
+
+// Render pagination
+function renderPagination() {
+    const totalPages = Math.ceil(currentProducts.length / itemsPerPage);
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '<div class="pagination-buttons">';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                data-page="${currentPage - 1}" 
+                ${currentPage === 1 ? 'disabled' : ''}>
+            Previous
+        </button>
+    `;
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            paginationHTML += `
+                <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+                        data-page="${i}">
+                    ${i}
+                </button>
+            `;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                data-page="${currentPage + 1}" 
+                ${currentPage === totalPages ? 'disabled' : ''}>
+            Next
+        </button>
+    `;
+    
+    paginationHTML += '</div>';
+    pagination.innerHTML = paginationHTML;
+    
+    // Attach pagination listeners
+    document.querySelectorAll('.pagination-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const page = parseInt(e.target.dataset.page);
+            if (page && page !== currentPage) {
+                currentPage = page;
+                renderProducts();
+                
+                // Scroll to products grid instead of top
+                const productsGrid = document.getElementById('products-grid');
+                if (productsGrid) {
+                    const offset = 100; // Offset to show some context above
+                    const elementPosition = productsGrid.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+}
+
+// Attach product-specific event listeners
+function attachProductListeners() {
+    // Add to cart buttons
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const productId = parseInt(e.target.dataset.productId);
+            addToCart(productId);
+        });
+    });
+    
+    // Add set to cart buttons
+    document.querySelectorAll('.add-set-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const setIds = e.target.dataset.setIds.split(',').map(id => parseInt(id));
+            addSetToCart(setIds, e.target);
+        });
+    });
+    
+    // Wishlist buttons
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const productId = parseInt(e.currentTarget.dataset.productId);
+            toggleWishlist(productId);
+        });
+    });
+}
+
+// Add product to cart
+function addToCart(productId) {
+    const product = productsData.find(p => p.id === productId);
+    if (!product) return;
+    
+    const existingItem = cart.find(item => item.id === productId);
+    
+    if (existingItem) {
+        showNotification('Product already in cart!', 'info');
+        return;
+    }
+    
+    cart.push({ ...product, quantity: 1 });
+    localStorage.setItem('sajiyasCart', JSON.stringify(cart));
+    updateCartCount();
+    
+    // Update button state
+    const btn = document.querySelector(`.add-to-cart-btn[data-product-id="${productId}"]`);
+    if (btn) {
+        btn.textContent = 'In Cart';
+        btn.classList.add('in-cart');
+    }
+    
+    showNotification('Added to cart!', 'success');
+}
+
+// Add complete set to cart
+function addSetToCart(setIds, btn) {
+    const setProducts = productsData.filter(p => setIds.includes(p.id));
+    if (setProducts.length === 0) return;
+    
+    // Check if any item from the set is already in cart
+    const alreadyInCart = setProducts.some(p => cart.some(item => item.id === p.id));
+    
+    if (alreadyInCart) {
+        showNotification('Some items from this set are already in cart!', 'info');
+        return;
+    }
+    
+    // Add all items from the set to cart
+    setProducts.forEach(product => {
+        cart.push({ ...product, quantity: 1 });
+    });
+    
+    localStorage.setItem('sajiyasCart', JSON.stringify(cart));
+    updateCartCount();
+    
+    // Update button state
+    if (btn) {
+        btn.textContent = 'Set In Cart';
+        btn.classList.add('in-cart');
+    }
+    
+    showNotification(`Complete set added to cart! (${setProducts.length} items)`, 'success');
+}
+
+// Toggle wishlist
+function toggleWishlist(productId) {
+    const normalizedId = Number(productId);
+    const existingIndex = wishlist.findIndex(item => Number(item.id) === normalizedId);
+
+    if (existingIndex >= 0) {
+        wishlist.splice(existingIndex, 1);
+        saveWishlist();
+        document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.remove('active'));
+        showNotification('Removed from wishlist!', 'info');
+        return;
+    }
+
+    const product = productsData.find(p => Number(p.id) === normalizedId);
+    if (!product) {
+        showNotification('Could not add to wishlist', 'error');
+        return;
+    }
+
+    wishlist.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: product.image_url || product.image || '',
+        category: product.category || '',
+        stock_status: product.stock_status || 'in_stock'
+    });
+    saveWishlist();
+
+    document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
+    showNotification('Added to wishlist!', 'info');
+}
+
+// Update cart count
+function updateCartCount() {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartCount) {
+        cartCount.textContent = totalItems;
+    }
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Show loading state
+function showLoading() {
+    loadingState.style.display = 'flex';
+    productsGrid.style.opacity = '0.5';
+}
+
+// Hide loading state
+function hideLoading() {
+    loadingState.style.display = 'none';
+    productsGrid.style.opacity = '1';
+}

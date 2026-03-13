@@ -8,6 +8,8 @@
     position: sticky;
     top: 0;
     z-index: 1000;
+    left: 0;
+    right: 0;
 }
 
 .navbar-container {
@@ -27,8 +29,8 @@
 }
 
 .logo-icon {
-    width: 24px;
-    height: 24px;
+    width: auto;
+    height: 55px;
     flex-shrink: 0;
 }
 
@@ -100,7 +102,9 @@
 }
 
 .btn-secondary:hover {
-    background-color: var(--color-neutral-light);
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+    border-color: var(--color-secondary);
 }
 
 /* ============================================
@@ -219,4 +223,13 @@
 .footer p {
     font-size: var(--font-size-small);
     color: var(--color-neutral-medium);
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 480px) {
+    .logo-icon {
+        height: 40px;
+    }
 }

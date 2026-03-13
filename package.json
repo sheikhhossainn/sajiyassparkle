@@ -1,0 +1,28 @@
+{
+  "name": "sajiyassparkle",
+  "version": "1.0.0",
+  "description": "This guide explains how our team collaborates on this project using Git and GitHub. Follow these steps carefully to avoid conflicts and keep the code organized.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sheikhhossainn/sajiyassparkle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sheikhhossainn/sajiyassparkle/issues"
+  },
+  "homepage": "https://github.com/sheikhhossainn/sajiyassparkle#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
+    "dotenv": "^17.3.1",
+    "vite": "^7.3.1"
+  }
+}
