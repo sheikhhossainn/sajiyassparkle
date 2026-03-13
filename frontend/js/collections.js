@@ -52,7 +52,9 @@ const categoryPills = document.querySelectorAll('.category-pill');
 
 // Initialize cart from localStorage
 let cart = JSON.parse(localStorage.getItem('sajiyasCart')) || [];
-let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+let wishlist = []; // Will be loaded from DB or LS
+let currentUser = null;
+
 updateCartCount();
 
 function getResolvedImageUrl(rawImage) {
@@ -71,7 +73,10 @@ function isWishlisted(productId) {
 }
 
 function saveWishlist() {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+    // Only save to localStorage if guest
+    if (!currentUser) {
+        localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+    }
 }
 
 // Initialize the page
@@ -82,6 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize page
 async function initializePage() {
+    // Check auth state
+    const { data: { session } } = await supabase.auth.getSession();
+    currentUser = session?.user || null;
+
+    // Load wishlist based on auth
+    if (currentUser) {
+        try {
+            const { data, error } = await supabase
+                .from('wishlist')
+                .select('product_id');
+            
+            if (!error && data) {
+                wishlist = data.map(item => ({ id: item.product_id }));
+            }
+        } catch (e) {
+            console.error('Error loading wishlist from DB:', e);
+        }
+    } else {
+        wishlist = []; // Guest mode - Wishlist disabled
+    }
+
     // Show loading state while fetching potentially
     try {
         const { data, error } = await supabase
@@ -674,36 +700,63 @@ function addSetToCart(setIds, btn) {
 }
 
 // Toggle wishlist
-function toggleWishlist(productId) {
+async function toggleWishlist(productId) {
+    if (!currentUser) {
+        showNotification('Please login to use wishlist features', 'error');
+        return;
+    }
+
     const normalizedId = Number(productId);
+    
+    // Check if item exists in current wishlist state
     const existingIndex = wishlist.findIndex(item => Number(item.id) === normalizedId);
 
-    if (existingIndex >= 0) {
-        wishlist.splice(existingIndex, 1);
-        saveWishlist();
-        document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.remove('active'));
-        showNotification('Removed from wishlist!', 'info');
-        return;
+    if (currentUser) {
+        // --- LOGGED IN USER LOGIC ---
+        if (existingIndex >= 0) {
+            // Remove from DB first
+            const { error } = await supabase
+                .from('wishlist')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('product_id', normalizedId);
+
+            if (!error) {
+                wishlist.splice(existingIndex, 1);
+                document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.remove('active'));
+                showNotification('Removed from wishlist!', 'info');
+            } else {
+                showNotification('Error removing item', 'error');
+            }
+        } else {
+            // Add to DB first
+            const { error } = await supabase
+                .from('wishlist')
+                .insert({ user_id: currentUser.id, product_id: normalizedId });
+            
+            if (!error) {
+                wishlist.push({ id: normalizedId });
+                document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
+                showNotification('Added to wishlist!', 'info');
+            } else {
+                console.error('Error adding to wishlist:', error);
+                
+                // Detailed error handling
+                if (error.code === '42P01' || (error.message && error.message.includes('Could not find the table'))) { 
+                    showNotification('System Error: Wishlist table missing! Please run SETUP_WISHLIST.sql in Supabase.', 'error');
+                } else if (error.code === '23505') { // unique_violation
+                    // Already exists, just update UI
+                    wishlist.push({ id: normalizedId });
+                    document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
+                    showNotification('Added to wishlist!', 'info');
+                } else if (error.code === '23503') { // foreign_key_violation
+                    showNotification('Error: Product not found in database', 'error');
+                } else {
+                    showNotification(`Error adding item: ${error.message}`, 'error');
+                }
+            }
+        }
     }
-
-    const product = productsData.find(p => Number(p.id) === normalizedId);
-    if (!product) {
-        showNotification('Could not add to wishlist', 'error');
-        return;
-    }
-
-    wishlist.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image_url: product.image_url || product.image || '',
-        category: product.category || '',
-        stock_status: product.stock_status || 'in_stock'
-    });
-    saveWishlist();
-
-    document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
-    showNotification('Added to wishlist!', 'info');
 }
 
 // Update cart count

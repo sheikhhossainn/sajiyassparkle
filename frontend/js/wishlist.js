@@ -1,28 +1,46 @@
 // Wishlist Page JavaScript
+import { supabase } from './supabase.js';
 
 const WISHLIST_KEY = 'sajiyasWishlist';
 const CART_KEY = 'sajiyasCart';
 
 let wishlistItems = [];
+let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     loadWishlist();
-    renderWishlist();
 });
 
-function loadWishlist() {
-    try {
-        const raw = localStorage.getItem(WISHLIST_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        wishlistItems = Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-        console.warn('Failed to parse wishlist data:', error);
+async function loadWishlist() {
+    const { data: { session } } = await supabase.auth.getSession();
+    currentUser = session?.user || null;
+
+    if (currentUser) {
+        // Fetch from DB
+        const { data, error } = await supabase
+            .from('wishlist')
+            .select(`
+                product_id, 
+                products (
+                    id, name, price, image_url, category, stock_status
+                )
+            `);
+            
+        if (!error && data) {
+             wishlistItems = data.map(item => item.products).filter(p => p !== null);
+        } else {
+             console.error('Error fetching wishlist:', error);
+             wishlistItems = [];
+        }
+    } else {
+        // Guest mode - Wishlist disabled
         wishlistItems = [];
     }
+    renderWishlist();
 }
 
 function saveWishlist() {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlistItems));
+    // Disabled for guest
 }
 
 function renderWishlist() {
@@ -53,7 +71,7 @@ function renderWishlist() {
             <div class="wishlist-card" data-product-id="${item.id}">
                 <button class="wishlist-remove-btn" data-remove-id="${item.id}" aria-label="Remove from wishlist">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.99872 7.05 2.99872C5.59096 2.99872 4.19169 3.5783 3.16 4.61C2.1283 5.64169 1.54872 7.04096 1.54872 8.5C1.54872 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39464C21.7563 5.72717 21.351 5.12084 20.84 4.61Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
                     </svg>
                 </button>
                 <div class="wishlist-card-image">
@@ -91,10 +109,26 @@ function bindWishlistEvents() {
     });
 }
 
-function removeFromWishlist(productId) {
+async function removeFromWishlist(productId) {
+    if (!currentUser) return; // Should not happen in UI, but safety check
+
     const card = document.querySelector(`.wishlist-card[data-product-id="${productId}"]`);
+    
+    // Update local state first (optimistic UI)
     wishlistItems = wishlistItems.filter((item) => Number(item.id) !== productId);
-    saveWishlist();
+
+    if (currentUser) {
+        // Remove from DB
+        const { error } = await supabase
+            .from('wishlist')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('product_id', productId);
+            
+        if (error) {
+            console.error('Error removing from DB:', error);
+        }
+    }
 
     if (card) {
         card.classList.add('removing');
