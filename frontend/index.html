@@ -17,8 +17,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
+        rel="preload"
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
+        as="style"
+        onload="this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap">
+    </noscript>
 </head>
 
 <body>
@@ -67,6 +73,7 @@
     <main>
         <!-- Hero Section -->
         <section class="hero">
+            <img class="hero-bg-image" src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=80" alt="" fetchpriority="high">
             <div class="hero-overlay"></div>
             <div class="container">
                 <div class="hero-content">
@@ -93,7 +100,7 @@
                                 <circle cx="18.5" cy="18.5" r="2.5" stroke="#1a1a1a" stroke-width="2"/>
                             </svg>
                         </div>
-                        <h3 class="feature-title">Free Shipping</h3>
+                        <h2 class="feature-title">Free Shipping</h2>
                         <p class="feature-description">On All Orders</p>
                     </div>
                     <div class="feature-card">
@@ -104,7 +111,7 @@
                                 <path d="M4 6L8 10L16 10L20 6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <h3 class="feature-title">Certified Quality</h3>
+                        <h2 class="feature-title">Certified Quality</h2>
                         <p class="feature-description">Hallmarked Jewelry</p>
                     </div>
                     <div class="feature-card">
@@ -114,7 +121,7 @@
                                 <path d="M7 6L3 10L7 14" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <h3 class="feature-title">Easy Returns</h3>
+                        <h2 class="feature-title">Easy Returns</h2>
                         <p class="feature-description">Hassle-Free Returns</p>
                     </div>
                 </div>
@@ -160,10 +167,10 @@
             </div>
         </div>
     </footer>
-    <script type="module" src="js/supabase.js"></script>
-    <script type="module" src="js/auth-state.js"></script>
-    <script type="module" src="js/index.js"></script>
-    <script type="module" src="js/cart-nav.js"></script>
+    <script type="module" src="js/supabase.js" defer></script>
+    <script type="module" src="js/auth-state.js" defer></script>
+    <script type="module" src="js/index.js" defer></script>
+    <script type="module" src="js/cart-nav.js" defer></script>
 </body>
 
 </html>
