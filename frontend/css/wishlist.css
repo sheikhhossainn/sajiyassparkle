@@ -48,8 +48,8 @@
     position: absolute;
     top: var(--spacing-sm);
     right: var(--spacing-sm);
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
+    background-color: #000000;
+    border: 1px solid #000000;
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -63,19 +63,19 @@
 }
 
 .wishlist-remove-btn:hover {
-    background-color: var(--color-secondary);
-    border-color: var(--color-secondary);
+    background-color: #ffffff;
+    border-color: #000000;
     transform: scale(1.1);
 }
 
 .wishlist-remove-btn:hover svg {
-    stroke: var(--color-white);
+    stroke: #000000;
 }
 
 .wishlist-remove-btn svg {
     width: 20px;
     height: 20px;
-    stroke: var(--color-primary);
+    stroke: #ffffff;
     transition: stroke 0.3s ease;
 }
 

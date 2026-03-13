@@ -4,28 +4,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sajiyas Sparkle - Admin Dashboard">
-    <title>Sajiyas Sparkle | Admin Dashboard</title>
+    <meta name="description" content="Sajiyas Sparkle - Admin Customers">
+    <title>Sajiyas Sparkle | Customers</title>
 
+    <!-- CSS Files -->
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/admin-products.css">
-    <link rel="stylesheet" href="../css/admin-dashboard.css">
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .customers-table th,
+        .customers-table td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: middle;
+        }
+        .customers-table thead th {
+            background-color: var(--color-neutral-light);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-neutral-medium);
+        }
+        .customers-table tbody tr:hover {
+            background-color: #fafafa;
+        }
+        .customers-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .customer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--color-accent-gold);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-right: 0.6rem;
+        }
+        .customer-name-cell {
+            display: flex;
+            align-items: center;
+        }
+        .badge-email {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+        }
+        .customers-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .customers-search-bar input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .customers-search-bar input:focus {
+            border-color: var(--color-accent-gold);
+        }
+        .customers-count {
+            font-size: 0.85rem;
+            color: var(--color-neutral-medium);
+            white-space: nowrap;
+        }
+        .no-customers {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--color-neutral-medium);
+        }
+        .no-customers svg {
+            margin-bottom: 0.75rem;
+            opacity: 0.4;
+        }
+    </style>
 </head>
 
 <body>
     <div class="admin-layout">
+
+        <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-header-title">Admin Panel</span>
             </div>
 
             <nav class="sidebar-nav">
-                <a href="admin-dashboard.html" class="sidebar-link active">
+                <a href="admin-dashboard.html" class="sidebar-link">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
                         <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
@@ -51,7 +143,7 @@
                     </svg>
                     Orders
                 </a>
-                <a href="admin-customers.html" class="sidebar-link">
+                <a href="admin-customers.html" class="sidebar-link active">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -74,87 +166,39 @@
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="admin-main">
             <div class="content-wrapper">
                 <div class="container">
-                    <div class="admin-page-header dashboard-header">
-                        <div class="admin-page-title-wrap">
-                            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" />
-                                    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" />
-                                    <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
-                                </svg>
-                            </button>
-                            <h1 class="page-title">Admin Dashboard</h1>
-                        </div>
-                        <p class="admin-page-subtitle">Focused overview of orders, customers, and inventory.</p>
-                    </div>
 
-                    <section class="content-section">
-                        <div class="dashboard-stats-grid">
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Total Orders</p>
-                                <h3 class="stat-value" id="statTotalOrders">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Pending Orders</p>
-                                <h3 class="stat-value" id="statPending">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Delivered Orders</p>
-                                <h3 class="stat-value" id="statDelivered">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Completed Orders</p>
-                                <h3 class="stat-value" id="statCompleted">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Customers</p>
-                                <h3 class="stat-value" id="statCustomers">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Products</p>
-                                <h3 class="stat-value" id="statProducts">0</h3>
-                            </article>
-                        </div>
-                    </section>
-
+                    <!-- Customers Table Section -->
                     <section class="content-section">
                         <div class="card">
                             <div class="card-header">
-                                <h2 class="card-title">Quick Access</h2>
-                                <p class="card-subtitle">Jump directly to admin tools.</p>
-                            </div>
-                            <div class="card-body quick-actions-row">
-                                <button class="btn btn-primary" id="goOrders">View Orders</button>
-                                <button class="btn btn-secondary" id="goProducts">Manage Products</button>
-                                <button class="btn btn-secondary" id="goCustomers">Manage Customers</button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="content-section">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Latest Orders</h2>
-                                <p class="card-subtitle">Most recent customer orders.</p>
+                                <h2 class="card-title">All Customers</h2>
+                                <p class="card-subtitle" id="customersCountLabel">Loading...</p>
                             </div>
                             <div class="card-body">
-                                <div class="table-wrap">
-                                    <table class="dashboard-table">
+                                <div class="customers-search-bar">
+                                    <input type="text" id="customerSearch" placeholder="Search by name or email..." />
+                                    <span class="customers-count" id="customersShownCount"></span>
+                                </div>
+                                <div style="overflow-x: auto;">
+                                    <table class="customers-table">
                                         <thead>
                                             <tr>
-                                                <th>Order ID</th>
-                                                <th>Customer</th>
-                                                <th>Total</th>
-                                                <th>Status</th>
-                                                <th>Date</th>
+                                                <th>Customer Name</th>
+                                                <th>Email</th>
+                                                <th>Phone Number</th>
+                                                <th>Address</th>
+                                                <th>Joined</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="latestOrdersBody">
+                                        <tbody id="customersTableBody">
                                             <tr>
-                                                <td colspan="5" class="table-empty">Loading latest orders...</td>
+                                                <td colspan="5" style="text-align:center; padding: 2rem; color: var(--color-neutral-medium);">
+                                                    Loading customers...
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -162,12 +206,14 @@
                             </div>
                         </div>
                     </section>
+
                 </div>
             </div>
         </main>
+
     </div>
 
-    <script type="module" src="../js/admin-dashboard.js"></script>
+    <script type="module" src="../js/admin-customers.js"></script>
 </body>
 
 </html>

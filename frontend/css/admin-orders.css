@@ -1,0 +1,117 @@
+.orders-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+}
+
+.orders-stat-card {
+    border: 1px solid var(--color-border);
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow-card);
+}
+
+.orders-stat-card p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-neutral-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.orders-stat-card h3 {
+    margin: 0.25rem 0 0;
+    font-size: 1.5rem;
+}
+
+.orders-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.order-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    overflow: hidden;
+}
+
+.order-card-head {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.order-id {
+    font-weight: 600;
+}
+
+.order-date {
+    color: var(--color-neutral-medium);
+    font-size: 0.8rem;
+}
+
+.status-chip {
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    text-transform: capitalize;
+}
+
+.status-chip.pending { background: #fef3c7; color: #92400e; }
+.status-chip.delivered, .status-chip.completed { background: #dcfce7; color: #166534; }
+.status-chip.processing { background: #dbeafe; color: #1d4ed8; }
+.status-chip.cancelled { background: #fee2e2; color: #b91c1c; }
+
+.order-card-body {
+    padding: 0.95rem 1rem;
+}
+
+.customer-block {
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.customer-name {
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.customer-meta {
+    color: var(--color-neutral-medium);
+    font-size: 0.86rem;
+}
+
+.delivery-address {
+    margin: 0.45rem 0 0;
+    font-size: 0.86rem;
+}
+
+.items-list {
+    margin: 0;
+    padding-left: 1rem;
+}
+
+.items-list li {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.order-total {
+    margin-top: 0.7rem;
+    font-weight: 700;
+}
+
+.orders-loading,
+.orders-empty {
+    text-align: center;
+    color: var(--color-neutral-medium);
+    padding: 2rem 0.5rem;
+}

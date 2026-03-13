@@ -107,6 +107,24 @@
     margin: 0;
 }
 
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-primary);
+    font-size: var(--font-size-small);
+    width: fit-content;
+}
+
+.social-link svg {
+    color: #000000;
+}
+
+.social-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
 /* Contact Form Section */
 .contact-form-section {
     background-color: var(--color-white);

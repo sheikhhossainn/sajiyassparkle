@@ -1,439 +1,204 @@
 import { supabase } from './supabase.js';
 
-// ============================================
-// Admin Login - JavaScript
-// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    showAdminContent();
+    setupAuthToggle();
+    setupPasswordToggles();
+    setupLogin();
+    setupRegister();
+    setupGoogleLogin();
+    checkExistingSession();
+});
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Admin Login loaded');
+function showAdminContent() {
+    const accessDenied = document.getElementById('accessDenied');
+    const adminContent = document.getElementById('adminContent');
 
-    // Get DOM elements
+    if (accessDenied) accessDenied.style.display = 'none';
+    if (adminContent) adminContent.style.display = 'block';
+}
+
+function setupAuthToggle() {
     const loginToggle = document.getElementById('loginToggle');
     const registerToggle = document.getElementById('registerToggle');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const switchToRegister = document.getElementById('switchToRegister');
     const switchToLogin = document.getElementById('switchToLogin');
-    const loginFormElement = document.getElementById('loginFormElement');
-    const registerFormElement = document.getElementById('registerFormElement');
 
-    // Toggle to login form
-    function showLoginForm() {
-        loginToggle.classList.add('active');
-        registerToggle.classList.remove('active');
-        loginForm.classList.add('active');
-        registerForm.classList.remove('active');
-        
-        // Ensure Google Sign In (if added) is visible on login only
-        const googleBtn = document.getElementById('adminGoogleSignInBtn');
-        const googleDivider = document.querySelector('.google-divider');
-        if(googleBtn) googleBtn.style.display = 'flex';
-        if(googleDivider) googleDivider.style.display = 'block';
-    }
+    const showLoginForm = () => {
+        if (loginToggle) loginToggle.classList.add('active');
+        if (registerToggle) registerToggle.classList.remove('active');
+        if (loginForm) loginForm.classList.add('active');
+        if (registerForm) registerForm.classList.remove('active');
+    };
 
-    // Toggle to register form
-    function showRegisterForm() {
-        registerToggle.classList.add('active');
-        loginToggle.classList.remove('active');
-        registerForm.classList.add('active');
-        loginForm.classList.remove('active');
-        
-        // Hide Google Sign In on register
-        const googleBtn = document.getElementById('adminGoogleSignInBtn');
-        const googleDivider = document.querySelector('.google-divider');
-        if(googleBtn) googleBtn.style.display = 'none';
-        if(googleDivider) googleDivider.style.display = 'none';
-    }
+    const showRegisterForm = () => {
+        if (registerToggle) registerToggle.classList.add('active');
+        if (loginToggle) loginToggle.classList.remove('active');
+        if (registerForm) registerForm.classList.add('active');
+        if (loginForm) loginForm.classList.remove('active');
+    };
 
-    // Event listeners for toggle buttons
-    if(loginToggle) loginToggle.addEventListener('click', showLoginForm);
-    if(registerToggle) registerToggle.addEventListener('click', showRegisterForm);
-    if(switchToRegister) switchToRegister.addEventListener('click', (e) => { e.preventDefault(); showRegisterForm(); });
-    if(switchToLogin) switchToLogin.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
+    if (loginToggle) loginToggle.addEventListener('click', showLoginForm);
+    if (registerToggle) registerToggle.addEventListener('click', showRegisterForm);
 
-    // ------------------------------------------------------------------
-    // Admin Login Logic
-    // ------------------------------------------------------------------
-    if (loginFormElement) {
-        loginFormElement.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                if (error) throw error;
-
-                // Check if user is actually an admin
-                checkAdminStatus(data.user.id);
-
-            } catch (err) {
-                alert('Login failed: ' + err.message);
-            }
-        });
-    }
-
-    // ------------------------------------------------------------------
-    // Admin Register Logic (Similar to User, but handled same way)
-    // ------------------------------------------------------------------
-    if (registerFormElement) {
-        registerFormElement.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            // Additional fields logic here if needed
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    // Note: This creates a regular user. They must be promoted to admin manually in DB
-                    // or via a secret code logic (not implemented for simplicity/security here)
-                });
-
-                if (error) throw error;
-                
-                alert('Admin account created! Contact main admin to approve access.');
-                showLoginForm();
-
-            } catch (err) {
-                alert('Registration failed: ' + err.message);
-            }
-        });
-    }
-    
-    // ------------------------------------------------------------------
-    // Google Sign In for Admin
-    // ------------------------------------------------------------------
-    const googleBtn = document.getElementById('adminGoogleSignInBtn');
-    if (googleBtn) {
-        googleBtn.addEventListener('click', async () => {
-             const { data, error } = await supabase.auth.signInWithOAuth({
-                 provider: 'google',
-                 options: {
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
-                 }
-             });
-             if (error) alert('Google Sign In Error: ' + error.message);
-        });
-    }
-
-    // ------------------------------------------------------------------
-    // Check Admin Status Helper
-    // ------------------------------------------------------------------
-    async function checkAdminStatus(userId) {
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', userId)
-            .single();
-            
-        if (error || !profile || !profile.is_admin) {
-            alert('Access Denied. You are not an administrator.');
-            await supabase.auth.signOut();
-            return;
-        }
-        
-        // Success
-        window.location.href = 'admin-dashboard.html';
-    }
-});
-    
-    registerToggle.addEventListener('click', function() {
-        console.log('Register toggle clicked');
-        showRegisterForm();
-    });
-    
     if (switchToRegister) {
-        switchToRegister.addEventListener('click', function(e) {
+        switchToRegister.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Switch to register link clicked');
             showRegisterForm();
         });
     }
-    
+
     if (switchToLogin) {
-        switchToLogin.addEventListener('click', function(e) {
+        switchToLogin.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Switch to login link clicked');
             showLoginForm();
         });
     }
-
-    console.log('Event listeners attached successfully');
 }
 
-function checkAccess() {
-    const hash = window.location.hash;
-    const accessDenied = document.getElementById('accessDenied');
-    const adminContent = document.getElementById('adminContent');
-    
-    if (!accessDenied || !adminContent) {
-        // Elements not ready yet, try again shortly
-        setTimeout(checkAccess, 50);
-        return;
-    }
-    
-    if (hash === '#' + SECRET_KEY) {
-        // Grant access
-        accessDenied.style.display = 'none';
-        adminContent.style.display = 'block';
-        console.log('Access granted');
-        
-        // Initialize toggle functionality after access is granted
-        setTimeout(initializeToggleFunctionality, 50);
-        return true;
-    } else {
-        // Deny access
-        accessDenied.style.display = 'block';
-        adminContent.style.display = 'none';
-        console.log('Access denied');
-        return false;
-    }
-}
-
-// Check access immediately and on DOM ready
-checkAccess();
-document.addEventListener('DOMContentLoaded', checkAccess);
-
-// Monitor hash changes (in case someone tries to modify the URL)
-window.addEventListener('hashchange', checkAccess);
-
-// ============================================
-// Form Validation and Password Toggle
-// (These are initialized with the main toggle functionality)
-// ============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Only initialize if access is granted
-    if (window.location.hash !== '#-Sa7iyA') {
-        return;
-    }
-
-    // Wait a bit to ensure elements are visible
-    setTimeout(function() {
-
-    // ============================================
-    // Password Toggle Functionality
-    // ============================================
-
+function setupPasswordToggles() {
     const passwordToggles = document.querySelectorAll('.password-toggle');
-    
-    passwordToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const targetId = this.getAttribute('data-target');
-            const passwordInput = document.getElementById(targetId);
-            const eyeOpen = this.querySelector('.eye-open');
-            const eyeClosed = this.querySelector('.eye-closed');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeOpen.style.display = 'none';
-                eyeClosed.style.display = 'block';
+
+    passwordToggles.forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+            const targetId = toggle.getAttribute('data-target');
+            const input = document.getElementById(targetId || '');
+            if (!input) return;
+
+            const eyeOpen = toggle.querySelector('.eye-open');
+            const eyeClosed = toggle.querySelector('.eye-closed');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (eyeOpen) eyeOpen.style.display = 'none';
+                if (eyeClosed) eyeClosed.style.display = 'block';
             } else {
-                passwordInput.type = 'password';
-                eyeOpen.style.display = 'block';
-                eyeClosed.style.display = 'none';
+                input.type = 'password';
+                if (eyeOpen) eyeOpen.style.display = 'block';
+                if (eyeClosed) eyeClosed.style.display = 'none';
             }
         });
     });
+}
 
-    // ============================================
-    // Form Validation
-    // ============================================
+function setupLogin() {
+    const loginForm = document.getElementById('loginFormElement');
+    if (!loginForm) return;
 
-    // Login form validation
-    const loginFormElement = document.getElementById('loginFormElement');
-    if (loginFormElement) {
-        loginFormElement.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Clear previous errors
-            clearErrors('login');
-            
-            // Get form values
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            
-            let isValid = true;
-            
-            // Validate email
-            if (!email) {
-                showError('loginEmailError', 'Email is required');
-                isValid = false;
-            } else if (!isValidEmail(email)) {
-                showError('loginEmailError', 'Please enter a valid email');
-                isValid = false;
-            }
-            
-            // Validate password
-            if (!password) {
-                showError('loginPasswordError', 'Password is required');
-                isValid = false;
-            }
-            
-            if (isValid) {
-                // Here you would typically send the data to a server
-                console.log('Login form submitted:', { email, password });
-                // Redirect to admin dashboard
-                window.location.href = 'admin-dashboard.html';
-            }
-        });
-    }
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // Register form validation
-    const registerFormElement = document.getElementById('registerFormElement');
-    if (registerFormElement) {
-        registerFormElement.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Clear previous errors
-            clearErrors('register');
-            
-            // Get form values
-            const firstName = document.getElementById('registerFirstName').value.trim();
-            const lastName = document.getElementById('registerLastName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value.trim();
-            const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
-            const role = document.getElementById('registerRole').value;
-            const agreeTerms = document.getElementById('agreeTerms').checked;
-            
-            let isValid = true;
-            
-            // Validate first name
-            if (!firstName) {
-                showError('registerFirstNameError', 'First name is required');
-                isValid = false;
-            }
-            
-            // Validate last name
-            if (!lastName) {
-                showError('registerLastNameError', 'Last name is required');
-                isValid = false;
-            }
-            
-            // Validate email
-            if (!email) {
-                showError('registerEmailError', 'Email is required');
-                isValid = false;
-            } else if (!isValidEmail(email)) {
-                showError('registerEmailError', 'Please enter a valid email');
-                isValid = false;
-            }
-            
-            // Validate password
-            if (!password) {
-                showError('registerPasswordError', 'Password is required');
-                isValid = false;
-            } else if (password.length < 8) {
-                showError('registerPasswordError', 'Password must be at least 8 characters');
-                isValid = false;
-            }
-            
-            // Validate confirm password
-            if (!confirmPassword) {
-                showError('registerConfirmPasswordError', 'Please confirm your password');
-                isValid = false;
-            } else if (password !== confirmPassword) {
-                showError('registerConfirmPasswordError', 'Passwords do not match');
-                isValid = false;
-            }
-            
-            // Validate role
-            if (!role) {
-                showError('registerRoleError', 'Please select a role');
-                isValid = false;
-            }
-            
-            // Validate terms agreement
-            if (!agreeTerms) {
-                alert('Please agree to the Terms & Conditions');
-                isValid = false;
-            }
-            
-            if (isValid) {
-                // Here you would typically send the data to a server
-                console.log('Register form submitted:', {
-                    firstName,
-                    lastName,
-                    email,
-                    password,
-                    role
-                });
-                // Redirect to admin dashboard
-                window.location.href = 'admin-dashboard.html';
-            }
-        });
-    }
+        const email = document.getElementById('loginEmail')?.value.trim() || '';
+        const password = document.getElementById('loginPassword')?.value || '';
 
-    // ============================================
-    // Helper Functions
-    // ============================================
-
-    function showError(elementId, message) {
-        const errorElement = document.getElementById(elementId);
-        if (errorElement) {
-            errorElement.textContent = message;
-            const inputElement = errorElement.previousElementSibling;
-            // Check if previous element is password-wrapper
-            if (inputElement && inputElement.classList.contains('password-wrapper')) {
-                const actualInput = inputElement.querySelector('.form-input');
-                if (actualInput) {
-                    actualInput.classList.add('error');
-                }
-            } else if (inputElement && inputElement.classList.contains('form-input')) {
-                inputElement.classList.add('error');
-            }
+        if (!email || !password) {
+            alert('Email and password are required.');
+            return;
         }
-    }
 
-    function clearErrors(formType) {
-        const errors = document.querySelectorAll('.form-error');
-        errors.forEach(error => {
-            error.textContent = '';
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
         });
-        
-        const inputs = document.querySelectorAll('.form-input.error');
-        inputs.forEach(input => {
-            input.classList.remove('error');
-        });
-    }
 
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
+        if (error) {
+            alert('Login failed: ' + error.message);
+            return;
+        }
 
-    // ============================================
-    // Real-time validation
-    // ============================================
-
-    // Clear error on input
-    const allInputs = document.querySelectorAll('.form-input');
-    allInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            this.classList.remove('error');
-            const parentWrapper = this.parentElement;
-            let errorElement;
-            
-            if (parentWrapper.classList.contains('password-wrapper')) {
-                errorElement = parentWrapper.nextElementSibling;
-            } else {
-                errorElement = this.nextElementSibling;
-            }
-            
-            if (errorElement && errorElement.classList.contains('form-error')) {
-                errorElement.textContent = '';
-            }
-        });
+        await redirectIfAdmin(data.user?.id || '');
     });
-    }, 200); // Close setTimeout
-});
+}
+
+function setupRegister() {
+    const registerForm = document.getElementById('registerFormElement');
+    if (!registerForm) return;
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const firstName = document.getElementById('registerFirstName')?.value.trim() || '';
+        const lastName = document.getElementById('registerLastName')?.value.trim() || '';
+        const email = document.getElementById('registerEmail')?.value.trim() || '';
+        const password = document.getElementById('registerPassword')?.value || '';
+        const confirmPassword = document.getElementById('registerConfirmPassword')?.value || '';
+        const agreeTerms = document.getElementById('agreeTerms')?.checked;
+
+        if (!firstName || !lastName || !email || !password) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match.');
+            return;
+        }
+
+        if (!agreeTerms) {
+            alert('Please agree to the Terms & Conditions.');
+            return;
+        }
+
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: `${firstName} ${lastName}`
+                }
+            }
+        });
+
+        if (error) {
+            alert('Registration failed: ' + error.message);
+            return;
+        }
+
+        alert('Account created. Ask an existing admin to set your profiles.is_admin = true.');
+    });
+}
+
+function setupGoogleLogin() {
+    const googleBtn = document.getElementById('adminGoogleSignInBtn');
+    if (!googleBtn) return;
+
+    googleBtn.addEventListener('click', async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google'
+        });
+
+        if (error) {
+            alert('Google sign-in failed: ' + error.message);
+        }
+    });
+}
+
+async function checkExistingSession() {
+    const { data } = await supabase.auth.getSession();
+    const userId = data?.session?.user?.id;
+    if (!userId) return;
+
+    await redirectIfAdmin(userId);
+}
+
+async function redirectIfAdmin(userId) {
+    if (!userId) return;
+
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+
+    if (error || !profile?.is_admin) {
+        alert('Access denied. This account is not an admin.');
+        await supabase.auth.signOut();
+        return;
+    }
+
+    window.location.href = 'admin-products.html';
+}
