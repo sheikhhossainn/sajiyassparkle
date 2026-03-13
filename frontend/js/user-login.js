@@ -511,6 +511,22 @@ function initializeAuth() {
                     return;
                 }
 
+                // Insert profile row so admin can see this customer
+                if (data?.user) {
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .upsert({
+                            id: data.user.id,
+                            email: email,
+                            username: `${firstName} ${lastName}`.trim(),
+                            phone: phone || null,
+                            is_admin: false
+                        }, { onConflict: 'id' });
+                    if (profileError) {
+                        console.warn('Profile insert warning:', profileError.message);
+                    }
+                }
+
                 console.log("Supabase Success:", data);
                 showSuccessAlert('Account created successfully! Please check your email for confirmation link before logging in.');
                 

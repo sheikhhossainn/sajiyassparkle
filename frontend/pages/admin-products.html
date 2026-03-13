@@ -28,9 +28,7 @@
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="sidebar-header">
-                <a href="../index.html" class="logo">
-                    <img src="../assets/logo-astral-sparkle.svg" alt="Sajiyas Sparkle Logo" class="logo-icon">
-                </a>
+                <span class="sidebar-header-title">Admin Panel</span>
             </div>
 
             <nav class="sidebar-nav">
@@ -43,13 +41,6 @@
                     </svg>
                     Dashboard
                 </a>
-                <a href="admin-categories.html" class="sidebar-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" stroke="currentColor"
-                            stroke-width="2" />
-                    </svg>
-                    Categories
-                </a>
                 <a href="admin-products.html" class="sidebar-link active">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" />
@@ -60,17 +51,26 @@
                 </a>
                 <a href="admin-orders.html" class="sidebar-link">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="9" cy="21" r="1" stroke="currentColor" stroke-width="2" />
-                        <circle cx="20" cy="21" r="1" stroke="currentColor" stroke-width="2" />
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
-                            stroke="currentColor" stroke-width="2" />
+                        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <line x1="8" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="8" y1="17" x2="12" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                     Orders
+                </a>
+                <a href="admin-customers.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Customers
                 </a>
             </nav>
 
             <div class="sidebar-footer">
-                <a href="admin-login.html#-Sa7iyA" class="sidebar-link sidebar-logout">
+                <a href="../index.html" class="sidebar-link sidebar-logout">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" />
                         <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" />
@@ -83,46 +83,22 @@
 
         <!-- Main Content -->
         <main class="admin-main">
-            <!-- Top Navigation -->
-            <nav class="navbar">
-                <div class="container navbar-container">
-                    <div class="nav-left">
-                        <button class="menu-toggle" id="menuToggle">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" />
-                                <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" />
-                                <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
-                            </svg>
-                        </button>
-                        <h1 class="page-title">Product Management</h1>
-                    </div>
-                    <div class="nav-actions">
-                        <button id="themeToggle" class="nav-action" aria-label="Toggle theme">
-                            <svg class="icon icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
-                                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <svg class="icon icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
             <!-- Content Area -->
             <div class="content-wrapper">
                 <div class="container">
+                    <div class="admin-page-header">
+                        <div class="admin-page-title-wrap">
+                            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" />
+                                    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" />
+                                    <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            </button>
+                            <h1 class="page-title">Product Management</h1>
+                        </div>
+                        <p class="admin-page-subtitle">Create, edit, feature, and remove products from the catalog.</p>
+                    </div>
 
                     <!-- Add Product Section -->
                     <section class="content-section">
@@ -133,6 +109,8 @@
                             </div>
                             <div class="card-body">
                                 <form id="productForm" class="product-form">
+                                    <input type="hidden" id="productId">
+                                    <input type="hidden" id="currentImageUrl">
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="productName" class="form-label">Product Name *</label>
@@ -142,14 +120,7 @@
 
                                         <div class="form-group">
                                             <label for="productCategory" class="form-label">Category *</label>
-                                            <select id="productCategory" class="form-input" required>
-                                                <option value="">Select Category</option>
-                                                <option value="necklaces">Necklaces</option>
-                                                <option value="rings">Rings</option>
-                                                <option value="earrings">Earrings</option>
-                                                <option value="bracelets">Bracelets</option>
-                                                <option value="bangles">Bangles</option>
-                                            </select>
+                                            <input type="text" id="productCategory" class="form-input" placeholder="Type category (e.g., necklaces)" required>
                                             <span class="form-error" id="productCategoryError"></span>
                                         </div>
                                     </div>
@@ -162,48 +133,29 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="productDiscount" class="form-label">Discount (%)</label>
-                                            <input type="number" id="productDiscount" class="form-input" placeholder="0" min="0" max="100">
-                                            <span class="form-error" id="productDiscountError"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="productMaterial" class="form-label">Material *</label>
-                                            <select id="productMaterial" class="form-input" required>
-                                                <option value="">Select Material</option>
-                                                <option value="gold">Gold</option>
-                                                <option value="silver">Silver</option>
-                                                <option value="diamond">Diamond</option>
-                                                <option value="platinum">Platinum</option>
-                                            </select>
-                                            <span class="form-error" id="productMaterialError"></span>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="productWeight" class="form-label">Weight (grams)</label>
-                                            <input type="number" id="productWeight" class="form-input" placeholder="0.00" step="0.01" min="0">
-                                            <span class="form-error" id="productWeightError"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="productStock" class="form-label">Stock Quantity *</label>
-                                            <input type="number" id="productStock" class="form-input" placeholder="0" min="0" required>
+                                            <label for="productStock" class="form-label">Stock Quantity</label>
+                                            <input type="number" id="productStock" class="form-input" placeholder="0" min="0">
                                             <span class="form-error" id="productStockError"></span>
                                         </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productStockStatus" class="form-label">Stock Status *</label>
+                                            <select id="productStockStatus" class="form-input" required>
+                                                <option value="">Select status</option>
+                                                <option value="In Stock">In Stock</option>
+                                                <option value="Out of Stock">Out of Stock</option>
+                                            </select>
+                                            <span class="form-error" id="productStockStatusError"></span>
+                                        </div>
 
                                         <div class="form-group">
-                                            <label for="productStatus" class="form-label">Status</label>
-                                            <div class="status-toggle">
-                                                <label class="toggle-switch">
-                                                    <input type="checkbox" id="productStatus" checked>
-                                                    <span class="toggle-slider"></span>
-                                                </label>
-                                                <span class="toggle-label" id="statusLabel">Available</span>
-                                            </div>
+                                            <label class="form-label" for="productFeatured">Homepage Feature</label>
+                                            <label style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;">
+                                                <input type="checkbox" id="productFeatured">
+                                                <span>Show this product on homepage (max 4)</span>
+                                            </label>
                                         </div>
                                     </div>
 
@@ -214,9 +166,9 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="productImages" class="form-label">Product Images</label>
+                                        <label for="productImages" class="form-label">Product Image *</label>
                                         <div class="image-upload-area">
-                                            <input type="file" id="productImages" accept="image/*" multiple hidden>
+                                            <input type="file" id="productImages" accept="image/*" hidden>
                                             <label for="productImages" class="image-upload-label">
                                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
                                                     xmlns="http://www.w3.org/2000/svg">
@@ -226,15 +178,16 @@
                                                     <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor"
                                                         stroke-width="2" />
                                                 </svg>
-                                                <span class="upload-text">Click to upload product images</span>
-                                                <span class="upload-hint">PNG, JPG up to 5MB (Multiple files allowed)</span>
+                                                <span class="upload-text">Click to upload product image</span>
+                                                <span class="upload-hint">PNG, JPG, WEBP up to 5MB</span>
                                             </label>
                                             <div id="imagePreviewContainer" class="image-preview-container"></div>
                                         </div>
                                     </div>
 
                                     <div class="form-actions">
-                                        <button type="submit" class="btn btn-primary">Save Product</button>
+                                        <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+                                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none;">Cancel Edit</button>
                                         <button type="reset" class="btn btn-secondary">Clear Form</button>
                                     </div>
                                 </form>
@@ -244,23 +197,34 @@
 
                     <!-- Products List Section -->
                     <section class="content-section">
+                        <div class="card" style="margin-bottom: var(--spacing-lg);">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Featured Items Manager</h2>
+                                    <p class="card-subtitle">Featured products on homepage: <strong id="featuredManagerCount">0</strong>/4</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="featuredManagerList" class="featured-manager-list"></div>
+                            </div>
+                        </div>
+
                         <div class="card">
                             <div class="card-header">
                                 <div>
                                     <h2 class="card-title">All Products</h2>
                                     <p class="card-subtitle">Manage your product inventory</p>
+                                    <p class="card-subtitle" id="featuredCountInfo">Featured on homepage: 0/4</p>
                                 </div>
                                 <div class="header-actions">
+                                    <button id="deleteSelectedBtn" class="btn btn-danger" disabled>
+                                        Delete Selected (<span id="selectedCount">0</span>)
+                                    </button>
                                     <div class="search-box">
                                         <input type="text" id="searchProducts" class="search-input" placeholder="Search products...">
                                     </div>
                                     <select id="filterCategory" class="filter-select">
                                         <option value="">All Categories</option>
-                                        <option value="necklaces">Necklaces</option>
-                                        <option value="rings">Rings</option>
-                                        <option value="earrings">Earrings</option>
-                                        <option value="bracelets">Bracelets</option>
-                                        <option value="bangles">Bangles</option>
                                     </select>
                                 </div>
                             </div>
@@ -269,13 +233,16 @@
                                     <table class="data-table">
                                         <thead>
                                             <tr>
+                                                <th>
+                                                    <input type="checkbox" id="selectAllProducts" aria-label="Select all products">
+                                                </th>
                                                 <th>Image</th>
                                                 <th>Product Name</th>
                                                 <th>Category</th>
-                                                <th>Material</th>
                                                 <th>Price</th>
                                                 <th>Stock</th>
                                                 <th>Status</th>
+                                                <th>Featured</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -322,7 +289,7 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="../js/admin-products.js"></script>
+    <script type="module" src="../js/admin-products.js"></script>
 
 </body>
 

@@ -126,6 +126,11 @@
     height: 48px;
 }
 
+.about-value-icon,
+.about-commitment-icon {
+    color: #000000;
+}
+
 .about-value-title {
     font-family: var(--font-heading);
     font-size: var(--font-size-product);
@@ -255,12 +260,16 @@
 }
 
 .about-cta-section .btn-primary {
-    background-color: var(--color-accent-gold);
-    color: var(--color-primary);
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ffffff;
 }
 
 .about-cta-section .btn-primary:hover {
-    opacity: 0.9;
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #ffffff;
+    opacity: 1;
 }
 
 .about-cta-section .btn-secondary {
@@ -270,8 +279,8 @@
 }
 
 .about-cta-section .btn-secondary:hover {
-    background-color: var(--color-white);
-    color: var(--color-primary);
+    background-color: #ffffff;
+    color: #000000;
 }
 
 /* ============================================

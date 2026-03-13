@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sajiyas Sparkle - Admin Dashboard">
-    <title>Sajiyas Sparkle | Admin Dashboard</title>
+    <meta name="description" content="Sajiyas Sparkle - Admin Orders">
+    <title>Sajiyas Sparkle | Orders</title>
 
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/admin-products.css">
-    <link rel="stylesheet" href="../css/admin-dashboard.css">
+    <link rel="stylesheet" href="../css/admin-orders.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="admin-dashboard.html" class="sidebar-link active">
+                <a href="admin-dashboard.html" class="sidebar-link">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
                         <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
@@ -42,7 +42,7 @@
                     </svg>
                     Products
                 </a>
-                <a href="admin-orders.html" class="sidebar-link">
+                <a href="admin-orders.html" class="sidebar-link active">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
                         <line x1="8" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -77,7 +77,7 @@
         <main class="admin-main">
             <div class="content-wrapper">
                 <div class="container">
-                    <div class="admin-page-header dashboard-header">
+                    <div class="admin-page-header">
                         <div class="admin-page-title-wrap">
                             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,78 +86,29 @@
                                     <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" />
                                 </svg>
                             </button>
-                            <h1 class="page-title">Admin Dashboard</h1>
+                            <h1 class="page-title">View Orders</h1>
                         </div>
-                        <p class="admin-page-subtitle">Focused overview of orders, customers, and inventory.</p>
+                        <p class="admin-page-subtitle">Every order with customer, items, date, delivery address, and status.</p>
                     </div>
 
                     <section class="content-section">
-                        <div class="dashboard-stats-grid">
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Total Orders</p>
-                                <h3 class="stat-value" id="statTotalOrders">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Pending Orders</p>
-                                <h3 class="stat-value" id="statPending">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Delivered Orders</p>
-                                <h3 class="stat-value" id="statDelivered">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Completed Orders</p>
-                                <h3 class="stat-value" id="statCompleted">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Customers</p>
-                                <h3 class="stat-value" id="statCustomers">0</h3>
-                            </article>
-                            <article class="dashboard-stat-card">
-                                <p class="stat-label">Products</p>
-                                <h3 class="stat-value" id="statProducts">0</h3>
-                            </article>
+                        <div class="orders-stats-grid">
+                            <article class="orders-stat-card"><p>Pending</p><h3 id="ordersPendingCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Delivered</p><h3 id="ordersDeliveredCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Completed</p><h3 id="ordersCompletedCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Total</p><h3 id="ordersTotalCount">0</h3></article>
                         </div>
                     </section>
 
                     <section class="content-section">
                         <div class="card">
                             <div class="card-header">
-                                <h2 class="card-title">Quick Access</h2>
-                                <p class="card-subtitle">Jump directly to admin tools.</p>
-                            </div>
-                            <div class="card-body quick-actions-row">
-                                <button class="btn btn-primary" id="goOrders">View Orders</button>
-                                <button class="btn btn-secondary" id="goProducts">Manage Products</button>
-                                <button class="btn btn-secondary" id="goCustomers">Manage Customers</button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="content-section">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Latest Orders</h2>
-                                <p class="card-subtitle">Most recent customer orders.</p>
+                                <h2 class="card-title">Order Stream</h2>
+                                <p class="card-subtitle">Grouped by order, newest first.</p>
                             </div>
                             <div class="card-body">
-                                <div class="table-wrap">
-                                    <table class="dashboard-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Order ID</th>
-                                                <th>Customer</th>
-                                                <th>Total</th>
-                                                <th>Status</th>
-                                                <th>Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="latestOrdersBody">
-                                            <tr>
-                                                <td colspan="5" class="table-empty">Loading latest orders...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div id="ordersCardsContainer" class="orders-cards-grid">
+                                    <div class="orders-loading">Loading orders...</div>
                                 </div>
                             </div>
                         </div>
@@ -167,7 +118,7 @@
         </main>
     </div>
 
-    <script type="module" src="../js/admin-dashboard.js"></script>
+    <script type="module" src="../js/admin-orders.js"></script>
 </body>
 
 </html>
