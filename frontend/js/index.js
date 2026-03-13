@@ -4,6 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFeaturedProducts();
 });
 
+function getResolvedImageUrl(rawImage) {
+    const value = String(rawImage || '').trim();
+    if (!value) return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+
+    const normalized = value.replace(/^\/+/, '');
+    const pathCandidate = normalized.startsWith('products/') ? normalized : `products/${normalized}`;
+    const { data } = supabase.storage.from('products').getPublicUrl(pathCandidate);
+    return data?.publicUrl || '';
+}
+
 async function loadFeaturedProducts() {
     const marqueeRoot = document.getElementById('featuredMarqueeRoot');
     if (!marqueeRoot) return;
@@ -53,12 +64,18 @@ async function loadFeaturedProducts() {
         }
 
         if (productsToShow.length > 0) {
-            const cards = productsToShow.map((product) => `
+            const cards = productsToShow.map((product) => {
+                const imageUrl = getResolvedImageUrl(product.image_url);
+                const imageHtml = imageUrl
+                    ? `<img src="${imageUrl}" alt="${escapeHtml(product.name)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" loading="lazy">`
+                    : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f2f2f2;color:#777;font-size:0.85rem;">No image</div>`;
+
+                return `
                 <article class="featured-slide">
                     <a href="pages/collections.html" class="featured-slide-link" aria-label="View ${escapeHtml(product.name)} in collection">
                         <div class="product-card">
                             <div class="product-card-image" style="position: relative; padding-top: 100%; overflow: hidden;">
-                                <img src="${product.image_url}" alt="${escapeHtml(product.name)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                ${imageHtml}
                             </div>
                             <div class="product-card-content">
                                 <h3 class="product-card-title">${escapeHtml(product.name)}</h3>
@@ -67,7 +84,8 @@ async function loadFeaturedProducts() {
                         </div>
                     </a>
                 </article>
-            `).join('');
+            `;
+            }).join('');
 
             // Duplicate track content for seamless infinite loop.
             const duplicated = cards + cards;

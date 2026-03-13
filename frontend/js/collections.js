@@ -55,6 +55,17 @@ let cart = JSON.parse(localStorage.getItem('sajiyasCart')) || [];
 let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
 updateCartCount();
 
+function getResolvedImageUrl(rawImage) {
+    const value = String(rawImage || '').trim();
+    if (!value) return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+
+    const normalized = value.replace(/^\/+/, '');
+    const pathCandidate = normalized.startsWith('products/') ? normalized : `products/${normalized}`;
+    const { data } = supabase.storage.from('products').getPublicUrl(pathCandidate);
+    return data?.publicUrl || '';
+}
+
 function isWishlisted(productId) {
     return wishlist.some(item => Number(item.id) === Number(productId));
 }
@@ -397,10 +408,9 @@ function createSetCard(setProducts, index) {
     
     // Create a grid of all images in the set
     const imagesHTML = setProducts.map(product => {
-        const imageUrl = product.image_url || product.image;
-        const isFullUrl = imageUrl && imageUrl.startsWith('http');
-        return isFullUrl
-            ? `<img src="${imageUrl}" alt="${product.name}" class="set-image-item ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+        const imageUrl = getResolvedImageUrl(product.image_url || product.image);
+        return imageUrl
+            ? `<img src="${imageUrl}" alt="${product.name}" class="set-image-item ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy" onerror="this.style.display='none'">`
             : '';
     }).join('');
     
@@ -437,7 +447,7 @@ function createProductCard(product, index) {
     const isInCart = cart.some(item => item.id === product.id);
     
     // Check if we have an image URL from Supabase, otherwise mock data image
-    const imageUrl = product.image_url || product.image;
+    const imageUrl = getResolvedImageUrl(product.image_url || product.image);
     
     // Check if this is a set item
     const isSetItem = (product.category || '').toLowerCase().includes('set');
@@ -447,9 +457,8 @@ function createProductCard(product, index) {
     const isOutOfStock = stockStatus === 'out_of_stock';
     
     // Fallback placeholder logic
-    const isFullUrl = imageUrl && imageUrl.startsWith('http');
-    const imageHTML = isFullUrl
-        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
+    const imageHTML = imageUrl
+        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy" onerror="this.style.display='none'; this.parentElement.insertAdjacentHTML('beforeend', '<div class=\"product-image-placeholder\"><svg width=\"60\" height=\"60\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z\" fill=\"#d4af37\" stroke=\"#d4af37\" stroke-width=\"1.5\"/><path d=\"M12 2L8 10H16L12 2Z\" fill=\"#f0e68c\"/></svg></div>');">`
         : `<div class="product-image-placeholder">
               <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5"/>
