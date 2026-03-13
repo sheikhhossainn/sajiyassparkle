@@ -289,6 +289,29 @@
         </div>
     </footer>
 
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Edit Profile</h2>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="edit-full-name">Full Name</label>
+                    <input type="text" id="edit-full-name" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">Phone Number</label>
+                    <input type="tel" id="edit-phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="edit-address">Address</label>
+                    <textarea id="edit-address" name="address" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <script type="module" src="../js/auth-state.js"></script>
     <script type="module" src="../js/profile.js"></script>
     <script type="module" src="../js/cart-nav.js"></script>
