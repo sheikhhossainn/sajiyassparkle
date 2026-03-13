@@ -39,7 +39,7 @@ async function ensureAdminAccess() {
     const user = sessionData?.session?.user;
 
     if (!user) {
-        window.location.href = 'admin-login.html#-Sa7iyA';
+        window.location.href = 'admin-login.html';
         return false;
     }
 
@@ -52,7 +52,7 @@ async function ensureAdminAccess() {
     if (error || !profile?.is_admin) {
         alert('Access denied. Admin account required.');
         await supabase.auth.signOut();
-        window.location.href = 'admin-login.html#-Sa7iyA';
+        window.location.href = 'admin-login.html';
         return false;
     }
 

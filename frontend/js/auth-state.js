@@ -17,10 +17,38 @@ function handleAuthErrors() {
     }
 }
 
+
 async function updateAuthUI() {
     handleAuthErrors();
     const { data: { session } } = await supabase.auth.getSession();
     
+    // Check if we are already on a login page
+    const currentPath = window.location.pathname.toLowerCase();
+    const isLoginPage = currentPath.includes('user-login.html') || currentPath.includes('admin-login.html');
+
+    if (session && !isLoginPage) {
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('username, phone, address')
+                .eq('id', session.user.id)
+                .single();
+            
+            // Check for missing profile or fields
+            if (error || !profile || !profile.username || !profile.phone || !profile.address) {
+                console.warn('Incomplete profile. Redirecting to login.');
+                // Determine target URL based on current depth
+                const isPagesDir = currentPath.includes('/pages/');
+                const target = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
+                
+                window.location.href = target;
+                return; // Stop execution
+            }
+        } catch (err) {
+            console.error('Profile check error:', err);
+        }
+    }
+
     // Select the login link/button in the navbar
     // We look for the link that points to the login page
     const loginLink = document.querySelector('a[href*="user-login.html"]');

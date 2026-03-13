@@ -1,5 +1,7 @@
 import { supabase } from './supabase.js';
 
+let currentProfileData = {};
+
 // Initialize profile page
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Profile page loaded');
@@ -17,16 +19,83 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Current User:', user);
 
     // Load User Profile Data
-    loadUserProfile(user);
+    await loadUserProfile(user);
 
     // Load User Orders
     await loadUserOrders(user.id);
 
     // Handle editing profile
     const editProfileBtn = document.querySelector('.profile-edit-btn');
-    if (editProfileBtn) {
+    const modal = document.getElementById('edit-profile-modal');
+    const closeModalBtn = document.querySelector('.close-modal');
+    const editForm = document.getElementById('edit-profile-form');
+
+    if (editProfileBtn && modal) {
         editProfileBtn.addEventListener('click', function() {
-            alert('Edit profile functionality coming soon!');
+            // Populate form
+            const fullName = currentProfileData.username || user.user_metadata?.full_name || user.email.split('@')[0];
+            document.getElementById('edit-full-name').value = fullName;
+            
+            // Get raw values
+            const phone = currentProfileData.phone || user.user_metadata?.phone || '';
+            const address = currentProfileData.address || user.user_metadata?.address || '';
+            
+            document.getElementById('edit-phone').value = phone;
+            document.getElementById('edit-address').value = address;
+            
+            modal.style.display = 'flex';
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+             modal.style.display = 'none';
+        });
+    }
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        if (modal && event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = editForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
+
+            const updates = {
+                username: document.getElementById('edit-full-name').value,
+                phone: document.getElementById('edit-phone').value,
+                address: document.getElementById('edit-address').value
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', user.id);
+
+                if (error) throw error;
+
+                // Reload profile to update UI
+                await loadUserProfile(user);
+                modal.style.display = 'none';
+                
+                // Optional: Show a nicer toast instead of alert
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile: ' + error.message);
+            } finally {
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            }
         });
     }
 
@@ -78,12 +147,35 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-function loadUserProfile(user) {
+async function loadUserProfile(user) {
+    let profileData = {};
+
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+        
+        if (data) {
+            profileData = data;
+        } else if (error) {
+           // Not found is okay, other errors warn
+           console.warn('Profile fetch warning:', error);
+        }
+    } catch (err) {
+        console.error('Error loading profile:', err);
+    }
+    
+    // Update global state for edit modal
+    currentProfileData = profileData;
+
     // 1. Name
     const nameElement = document.querySelector('.profile-name');
-    // user_metadata.full_name is set during registration
-    const fullName = user.user_metadata?.full_name || user.email.split('@')[0];
+    // Prioritize profile table > metadata > email
+    const fullName = profileData.username || user.user_metadata?.full_name || user.email.split('@')[0];
     if (nameElement) nameElement.textContent = fullName;
+
 
     // 2. Email
     const emailElement = document.querySelector('.profile-email');
@@ -91,14 +183,18 @@ function loadUserProfile(user) {
 
     // 3. Avatar
     const avatarContainer = document.querySelector('.profile-avatar');
-    if (user.user_metadata?.avatar_url && avatarContainer) {
-        avatarContainer.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    // Use UI Avatars if user has no avatar_url in metadata
+    const avatarUrl = user.user_metadata?.avatar_url || 
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=d4af37&color=fff`;
+        
+    if (avatarContainer) {
+        avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
     // 4. Address & Phone
-    // Check metadata first
-    const address = user.user_metadata?.address || 'Address not added';
-    const phone = user.user_metadata?.phone || 'Phone not added';
+    // Check profile table first, then metadata
+    const address = profileData.address || user.user_metadata?.address || 'Address not added';
+    const phone = profileData.phone || user.user_metadata?.phone || 'Phone not added';
     
     // Format Date: "January 2026"
     const memberSinceDate = new Date(user.created_at);
