@@ -1,7 +1,24 @@
 // common/auth-state.js or similar
 import { supabase } from './supabase.js';
 
+// Global error handler for OAuth redirects
+function handleAuthErrors() {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+
+    if (error) {
+        console.error('Supabase Auth Error:', error, errorDescription);
+        // Use a simple alert for now, or a custom UI if available
+        alert(`Authentication Error: ${decodeURIComponent(errorDescription || error)}`);
+        // Clean up the URL
+        history.replaceState(null, '', ' ');
+    }
+}
+
 async function updateAuthUI() {
+    handleAuthErrors();
     const { data: { session } } = await supabase.auth.getSession();
     
     // Select the login link/button in the navbar

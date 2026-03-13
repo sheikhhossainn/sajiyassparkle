@@ -7,6 +7,39 @@ import { supabase } from './supabase.js';
 function initializeAuth() {
     console.log("Initializing Auth Logic...");
 
+    // Check for existing session or OAuth errors
+    async function checkAuthStatus() {
+        // Check for error in hash (OAuth redirect)
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+        
+        if (error) {
+            console.error("Supabase OAuth Error:", error, errorDescription);
+            // Allow UI to settle
+            setTimeout(() => {
+                 showErrorAlert(decodeURIComponent(errorDescription || 'An error occurred during login.'));
+            }, 500);
+            return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            console.log("User already logged in, redirecting...");
+            window.location.href = '../index.html';
+        }
+    }
+    checkAuthStatus();
+
+    // Listen for auth state changes (e.g. OAuth callback)
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+             console.log("User signed in, redirecting...");
+             window.location.href = '../index.html';
+        }
+    });
+
     // Form Toggle Functionality
     const loginToggle = document.getElementById('loginToggle');
     const registerToggle = document.getElementById('registerToggle');
@@ -321,9 +354,10 @@ function initializeAuth() {
              const { data, error } = await supabase.auth.signInWithOAuth({
                  provider: 'google',
                   options: {
+                    redirectTo: window.location.origin,
                     queryParams: {
-                    access_type: 'offline',
-                    prompt: 'consent',
+                        access_type: 'offline',
+                        prompt: 'consent',
                     },
                 },
              });
