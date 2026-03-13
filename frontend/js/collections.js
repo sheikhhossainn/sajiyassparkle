@@ -458,7 +458,7 @@ function createProductCard(product, index) {
     
     // Fallback placeholder logic
     const imageHTML = imageUrl
-        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy" onerror="this.style.display='none'; this.parentElement.insertAdjacentHTML('beforeend', '<div class=\"product-image-placeholder\"><svg width=\"60\" height=\"60\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z\" fill=\"#d4af37\" stroke=\"#d4af37\" stroke-width=\"1.5\"/><path d=\"M12 2L8 10H16L12 2Z\" fill=\"#f0e68c\"/></svg></div>');">`
+        ? `<img src="${imageUrl}" alt="${product.name}" class="product-image ${isOutOfStock ? 'out-of-stock-img' : ''}" loading="lazy">`
         : `<div class="product-image-placeholder">
               <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L4 6L6 18L12 22L18 18L20 6L12 2Z" fill="#d4af37" stroke="#d4af37" stroke-width="1.5"/>
