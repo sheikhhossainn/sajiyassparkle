@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sajiyas Sparkle - Admin Portal Login & Registration">
+    <meta name="description" content="Sajiyas Sparkle - Admin Portal Login">
     <title>Sajiyas Sparkle | Admin Portal</title>
 
     <!-- CSS Files -->
@@ -49,7 +49,6 @@
 
                 <ul class="nav-links">
                     <li><a href="admin-login.html">Admin Login</a></li>
-                    <li><a href="admin-products.html">Products</a></li>
                 </ul>
 
                 <div class="nav-actions"></div>
@@ -79,191 +78,50 @@
             <!-- Auth Forms Section -->
             <section class="section">
                 <div class="container">
-                    <!-- Toggle Buttons -->
-                    <div class="auth-toggle">
-                        <button class="toggle-btn active" id="loginToggle">Login</button>
-                        <button class="toggle-btn" id="registerToggle">Register</button>
-                    </div>
-
-                    <!-- Login Form -->
                     <div class="auth-container active" id="loginForm">
                         <div class="auth-card">
-                            <h2 class="section-title" style="font-size: 1.75rem; margin-bottom: var(--spacing-xs);">Welcome Back</h2>
-                            <p class="auth-subtitle">Sign in to access the admin dashboard</p>
-                            
-                            <form class="auth-form" id="loginFormElement">
+                            <div class="auth-header" style="text-align: center; margin-bottom: 2rem;">
+                                <h2 class="section-title" style="font-size: 1.75rem; margin-bottom: var(--spacing-xs);">Authenticated Access</h2>
+                                <p class="auth-subtitle">Sign in to access the admin portal</p>
+                            </div>
+
+                            <!-- Email / Password Login -->
+                            <form class="auth-form" id="adminEmailLoginForm" style="margin-bottom: 2rem;">
                                 <div class="form-group">
-                                    <label for="loginEmail" class="form-label">Email Address <span class="required">*</span></label>
-                                    <input 
-                                        type="email" 
-                                        id="loginEmail" 
-                                        name="email" 
-                                        class="form-input" 
-                                        placeholder="admin@example.com"
-                                        required>
-                                    <div class="form-error" id="loginEmailError"></div>
+                                    <label for="adminEmail" class="form-label">Email Address</label>
+                                    <input type="email" id="adminEmail" class="form-input" placeholder="admin@example.com" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="loginPassword" class="form-label">Password <span class="required">*</span></label>
-                                    <div class="password-wrapper">
-                                        <input 
-                                            type="password" 
-                                            id="loginPassword" 
-                                            name="password" 
-                                            class="form-input" 
-                                            placeholder="Enter your password"
-                                            required>
-                                        <button type="button" class="password-toggle" data-target="loginPassword">
-                                            <svg class="eye-icon eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <svg class="eye-icon eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="loginPasswordError"></div>
+                                    <label for="adminPassword" class="form-label">Password</label>
+                                    <input type="password" id="adminPassword" class="form-input" placeholder="••••••••" required>
                                 </div>
-
-                                <div class="form-options">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="rememberMe" name="rememberMe">
-                                        <span>Remember me</span>
-                                    </label>
-                                    <a href="#" class="forgot-link">Forgot password?</a>
-                                </div>
-
                                 <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
-
-                                <p class="auth-switch">
-                                    First time here? 
-                                    <a href="#" class="switch-link" id="switchToRegister">Create an account</a>
-                                </p>
+                                <div id="loginError" style="color: #dc2626; font-size: 0.9rem; margin-top: 0.5rem; text-align: center;"></div>
                             </form>
-                        </div>
-                    </div>
 
-                    <!-- Register Form -->
-                    <div class="auth-container" id="registerForm">
-                        <div class="auth-card">
-                            <h2 class="section-title" style="font-size: 1.75rem; margin-bottom: var(--spacing-xs);">Create Account</h2>
-                            <p class="auth-subtitle">Register as a new admin</p>
-                            
-                            <form class="auth-form" id="registerFormElement">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="registerFirstName" class="form-label">First Name <span class="required">*</span></label>
-                                        <input 
-                                            type="text" 
-                                            id="registerFirstName" 
-                                            name="firstName" 
-                                            class="form-input" 
-                                            placeholder="John"
-                                            required>
-                                        <div class="form-error" id="registerFirstNameError"></div>
-                                    </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 2rem;">
+                                <div style="flex: 1; height: 1px; background-color: #e5e7eb;"></div>
+                                <span style="padding: 0 1rem; color: #6b7280; font-size: 0.875rem;">OR</span>
+                                <div style="flex: 1; height: 1px; background-color: #e5e7eb;"></div>
+                            </div>
 
-                                    <div class="form-group">
-                                        <label for="registerLastName" class="form-label">Last Name <span class="required">*</span></label>
-                                        <input 
-                                            type="text" 
-                                            id="registerLastName" 
-                                            name="lastName" 
-                                            class="form-input" 
-                                            placeholder="Doe"
-                                            required>
-                                        <div class="form-error" id="registerLastNameError"></div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="registerEmail" class="form-label">Email Address <span class="required">*</span></label>
-                                    <input 
-                                        type="email" 
-                                        id="registerEmail" 
-                                        name="email" 
-                                        class="form-input" 
-                                        placeholder="admin@example.com"
-                                        required>
-                                    <div class="form-error" id="registerEmailError"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="registerPassword" class="form-label">Password <span class="required">*</span></label>
-                                    <div class="password-wrapper">
-                                        <input 
-                                            type="password" 
-                                            id="registerPassword" 
-                                            name="password" 
-                                            class="form-input" 
-                                            placeholder="Create a strong password"
-                                            required>
-                                        <button type="button" class="password-toggle" data-target="registerPassword">
-                                            <svg class="eye-icon eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <svg class="eye-icon eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="registerPasswordError"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="registerConfirmPassword" class="form-label">Confirm Password <span class="required">*</span></label>
-                                    <div class="password-wrapper">
-                                        <input 
-                                            type="password" 
-                                            id="registerConfirmPassword" 
-                                            name="confirmPassword" 
-                                            class="form-input" 
-                                            placeholder="Re-enter your password"
-                                            required>
-                                        <button type="button" class="password-toggle" data-target="registerConfirmPassword">
-                                            <svg class="eye-icon eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <svg class="eye-icon eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="registerConfirmPasswordError"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="registerRole" class="form-label">Role <span class="required">*</span></label>
-                                    <select id="registerRole" name="role" class="form-input" required>
-                                        <option value="">Select role</option>
-                                        <option value="admin">Administrator</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="staff">Staff</option>
-                                    </select>
-                                    <div class="form-error" id="registerRoleError"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                                        <span>I agree to the <a href="#" class="terms-link">Terms & Conditions</a></span>
-                                    </label>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
-
-                                <p class="auth-switch">
-                                    Already have an account? 
-                                    <a href="#" class="switch-link" id="switchToLogin">Sign in</a>
+                            <div id="googleLoginSection">
+                                <button id="googleSignInBtn" class="btn btn-outline" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M23.5 12.27c0-.86-.07-1.68-.21-2.48H12v4.69h6.46a5.52 5.52 0 0 1-2.4 3.63v3H20a11.53 11.53 0 0 0 3.5-8.84Z" fill="#4285F4"/>
+                                        <path d="M12 24a11.45 11.45 0 0 0 7.94-2.91l-3.88-3a7.22 7.22 0 0 1-4.06 1.14 7.23 7.23 0 0 1-6.81-5H1.32v3.13A11.95 11.95 0 0 0 12 24Z" fill="#34A853"/>
+                                        <path d="M5.19 14.23A7.16 7.16 0 0 1 4.77 12a7.16 7.16 0 0 1 .42-2.23V6.64H1.32A11.94 11.94 0 0 0 0 12a11.94 11.94 0 0 0 1.32 5.36l3.87-3.13Z" fill="#FBBC05"/>
+                                        <path d="M12 4.77a6.52 6.52 0 0 1 4.6 1.8L19.98 3.2A11.45 11.45 0 0 0 12 0 11.95 11.95 0 0 0 1.32 6.64l3.87 3.13A7.23 7.23 0 0 1 12 4.77Z" fill="#EA4335"/>
+                                    </svg>
+                                    <span>Continue with Google</span>
+                                </button>
+                                <p style="text-align: center; color: #dc2626; font-size: 0.9rem; margin-top: 1rem;">
+                                    Restricted Access: Authorized Personnel Only
                                 </p>
-                            </form>
+                                <p style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 5px;">
+                                    (New admins must be manually added to the database by existing admins)
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -277,9 +135,17 @@
             </div>
         </footer>
     </div>
+    
+    <!-- JavaScript -->
+    <!-- Alert Div (Hidden) -->
+    <div id="errorAlert" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fee2e2; border: 1px solid #fecaca; padding: 15px 20px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; align-items: center; gap: 10px; color: #b91c1c;">
+             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+             <span id="errorAlertMessage">Error message</span>
+        </div>
+    </div>
 
     <!-- JavaScript -->
     <script type="module" src="../js/admin-login.js"></script>
 </body>
-
 </html>
