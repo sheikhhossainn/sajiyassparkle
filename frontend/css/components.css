@@ -16,6 +16,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
 }
 
 .logo {
@@ -53,6 +54,8 @@
     display: flex;
     gap: var(--spacing-md);
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 .nav-action {
@@ -61,6 +64,7 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    white-space: nowrap;
 }
 
 .nav-action .icon {
@@ -228,8 +232,124 @@
 /* ============================================
    Responsive Adjustments
    ============================================ */
-@media (max-width: 480px) {
+@media (max-width: 968px) {
+    .navbar {
+        padding: 0.75rem 0;
+    }
+
+    .navbar-container {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .logo {
+        flex-shrink: 0;
+    }
+
     .logo-icon {
-        height: 40px;
+        height: 42px;
+        width: auto;
+    }
+
+    .nav-actions {
+        width: auto;
+        justify-content: flex-end;
+        gap: 1.15rem;
+        flex-shrink: 0;
+    }
+
+    .nav-action {
+        font-size: 0; /* Hide text for all icons to save space */
+        gap: 0;
+    }
+
+    .nav-action .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .nav-action[href*='checkout'] {
+        font-size: 0.9rem; /* Keep text only for Cart */
+        gap: 0.35rem;
+    }
+
+    .nav-action[href*='checkout'] .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Mobile Menu Additions */
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--color-white);
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: none; /* hidden by default */
+        z-index: 999;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 1.25rem;
+        font-size: 1.1rem;
+        color: var(--color-primary);
     }
 }
+
+/* Hamburger button styling */
+.hamburger-menu {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: var(--color-primary);
+}
+
+.hamburger-menu svg {
+    width: 28px;
+    height: 28px;
+}
+
+@media (max-width: 968px) {
+    .hamburger-menu {
+        display: block;
+        margin-left: 0.5rem;
+    }
+    .nav-actions {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    .logo-icon {
+        height: 30px;
+    }
+    .nav-actions {
+        gap: 0.85rem;
+    }
+    .nav-action[href*='checkout'] {
+        font-size: 0.85rem;
+    }
+}
+
