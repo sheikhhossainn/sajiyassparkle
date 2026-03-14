@@ -135,6 +135,8 @@ Thumbs.db
 batch-images/
 output.txt
 batch-upload.js
+batch-rename-updated-images.js
+batch-images-UPDATED
 
 # Supabase folder
 supabase
