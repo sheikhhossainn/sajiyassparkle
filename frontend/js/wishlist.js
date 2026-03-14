@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { getWishlistCountLabel, getWishlistImageUrl, mapWishlistRowsToItems } from './utils/wishlist-utils.js';
 
 // Wishlist Page JavaScript
 
@@ -61,17 +62,7 @@ async function loadWishlistFromSupabase() {
         return;
     }
 
-    wishlistItems = (data || [])
-        .map(row => row.products)
-        .filter(Boolean)
-        .map(product => ({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image_url: product.image_url || '',
-            category: product.category || '',
-            stock_status: product.stock_status || 'in_stock'
-        }));
+    wishlistItems = mapWishlistRowsToItems(data);
 }
 
 function renderWishlist() {
@@ -84,18 +75,18 @@ function renderWishlist() {
     if (wishlistItems.length === 0) {
         wishlistGrid.style.display = 'none';
         wishlistEmpty.style.display = 'flex';
-        wishlistCount.textContent = 'No items saved';
+        wishlistCount.textContent = getWishlistCountLabel(0);
         wishlistGrid.innerHTML = '';
         return;
     }
 
     wishlistGrid.style.display = 'grid';
     wishlistEmpty.style.display = 'none';
-    wishlistCount.textContent = wishlistItems.length === 1 ? '1 item saved' : `${wishlistItems.length} items saved`;
+    wishlistCount.textContent = getWishlistCountLabel(wishlistItems.length);
 
     wishlistGrid.innerHTML = wishlistItems.map((item) => {
         const safeName = escapeHtml(item.name || 'Jewelry Item');
-        const safeImage = item.image_url || item.image || 'https://placehold.co/400x300/f5f5f5/333333?text=Jewelry';
+        const safeImage = getWishlistImageUrl(item);
         const price = Number(item.price || 0).toLocaleString('en-BD');
 
         return `

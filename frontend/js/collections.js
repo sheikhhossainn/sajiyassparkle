@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { categoryMatches, formatCategoryLabel } from './utils/category-utils.js';
 
 // Unified Shop Page JavaScript
 // Combines category browsing with product listing
@@ -212,26 +213,6 @@ function updateCategoryPillActive(category) {
     });
 }
 
-function normalizeCategory(rawCategory) {
-    const category = String(rawCategory || '').toLowerCase().trim();
-
-    if (category.startsWith('setitems')) return 'setitems';
-    if (category.startsWith('ring')) return 'rings';
-    if (category.startsWith('earring')) return 'earrings';
-    if (category.startsWith('bracelet')) return 'bracelets';
-    if (category.startsWith('necklace')) return 'necklaces';
-
-    return category;
-}
-
-function categoryMatches(productCategory, selected) {
-    const normalizedProduct = normalizeCategory(productCategory);
-    const normalizedSelected = normalizeCategory(selected);
-
-    if (normalizedSelected === 'all') return true;
-    return normalizedProduct === normalizedSelected;
-}
-
 // Update category pill counts
 function updateCategoryPillCounts() {
     categoryPills.forEach(pill => {
@@ -423,7 +404,7 @@ function createProductCard(product, index) {
             </div>
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
-                <p class="product-category">${formatCategory(product.category)}</p>
+                <p class="product-category">${formatCategoryLabel(product.category)}</p>
                 <p class="product-price">BDT ${product.price.toLocaleString('en-BD')}</p>
                 <button class="btn btn-primary add-to-cart-btn ${isInCart || isOutOfStock ? 'in-cart' : ''}" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
                     ${isOutOfStock ? 'Out of Stock' : (isInCart ? 'In Cart' : 'Add to Cart')}
@@ -446,20 +427,6 @@ function animateProductCards() {
             card.style.transform = 'translateY(0)';
         }, index * 50);
     });
-}
-
-// Format category name
-function formatCategory(category) {
-    const normalizedCategory = normalizeCategory(category);
-    const categoryMap = {
-        'rings': 'Rings',
-        'necklaces': 'Necklaces',
-        'earrings': 'Earrings',
-        'bracelets': 'Bracelets',
-        'setitems': 'Jewelry Sets',
-        'bridal': 'Others'
-    };
-    return categoryMap[normalizedCategory] || category;
 }
 
 // Render pagination
