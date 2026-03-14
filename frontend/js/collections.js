@@ -31,7 +31,6 @@ let currentView = 'grid';
 let currentPage = 1;
 let selectedCategory = 'all';
 const itemsPerPage = 9;
-const WISHLIST_KEY = 'sajiyasWishlist';
 
 // DOM elements
 const productsGrid = document.getElementById('products-grid');
@@ -52,7 +51,8 @@ const categoryPills = document.querySelectorAll('.category-pill');
 
 // Initialize cart from localStorage
 let cart = JSON.parse(localStorage.getItem('sajiyasCart')) || [];
-let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+let wishlist = [];
+let currentUserId = null;
 updateCartCount();
 
 function getResolvedImageUrl(rawImage) {
@@ -70,8 +70,48 @@ function isWishlisted(productId) {
     return wishlist.some(item => Number(item.id) === Number(productId));
 }
 
-function saveWishlist() {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+async function getCurrentUserId() {
+    try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+            console.warn('Could not fetch auth user:', error.message);
+            return null;
+        }
+        return data?.user?.id || null;
+    } catch (error) {
+        console.warn('Auth user lookup failed:', error);
+        return null;
+    }
+}
+
+async function loadWishlistFromSupabase(userId) {
+    if (!userId) {
+        wishlist = [];
+        return;
+    }
+
+    const { data, error } = await supabase
+        .from('wishlist')
+        .select('product_id, products!wishlist_product_id_fkey(id,name,price,image_url,category,stock_status)')
+        .eq('user_id', userId);
+
+    if (error) {
+        console.warn('Failed to load wishlist from Supabase:', error.message);
+        wishlist = [];
+        return;
+    }
+
+    wishlist = (data || [])
+        .map(row => row.products)
+        .filter(Boolean)
+        .map(product => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url || '',
+            category: product.category || '',
+            stock_status: product.stock_status || 'in_stock'
+        }));
 }
 
 // Initialize the page
@@ -110,6 +150,9 @@ async function initializePage() {
     
     // Update category counts after data is loaded
     updateCategoryPillCounts();
+
+    currentUserId = await getCurrentUserId();
+    await loadWishlistFromSupabase(currentUserId);
     
     renderProducts();
 }
@@ -674,13 +717,32 @@ function addSetToCart(setIds, btn) {
 }
 
 // Toggle wishlist
-function toggleWishlist(productId) {
+async function toggleWishlist(productId) {
     const normalizedId = Number(productId);
     const existingIndex = wishlist.findIndex(item => Number(item.id) === normalizedId);
 
+    if (!currentUserId) {
+        currentUserId = await getCurrentUserId();
+    }
+
+    if (!currentUserId) {
+        showNotification('Please log in to use wishlist', 'error');
+        return;
+    }
+
     if (existingIndex >= 0) {
+        const { error } = await supabase
+            .from('wishlist')
+            .delete()
+            .eq('user_id', currentUserId)
+            .eq('product_id', normalizedId);
+
+        if (error) {
+            showNotification('Could not remove from wishlist', 'error');
+            return;
+        }
+
         wishlist.splice(existingIndex, 1);
-        saveWishlist();
         document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.remove('active'));
         showNotification('Removed from wishlist!', 'info');
         return;
@@ -688,6 +750,29 @@ function toggleWishlist(productId) {
 
     const product = productsData.find(p => Number(p.id) === normalizedId);
     if (!product) {
+        showNotification('Could not add to wishlist', 'error');
+        return;
+    }
+
+    const { error } = await supabase
+        .from('wishlist')
+        .insert({
+            user_id: currentUserId,
+            product_id: normalizedId
+        });
+
+    if (error) {
+        if (error.code === '23505') {
+            document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
+            showNotification('Already in wishlist', 'info');
+            return;
+        }
+
+        if (String(error.message || '').toLowerCase().includes('wishlist limit reached')) {
+            showNotification('Wishlist limit reached. You can only add up to 5 items.', 'error');
+            return;
+        }
+
         showNotification('Could not add to wishlist', 'error');
         return;
     }
@@ -700,7 +785,6 @@ function toggleWishlist(productId) {
         category: product.category || '',
         stock_status: product.stock_status || 'in_stock'
     });
-    saveWishlist();
 
     document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => btn.classList.add('active'));
     showNotification('Added to wishlist!', 'info');
