@@ -452,17 +452,27 @@
 }
 
 .wishlist-btn:hover {
-    background-color: var(--color-accent-gold);
+    background-color: #e53935;
     transform: scale(1.1);
 }
 
-.wishlist-btn:hover svg {
+.wishlist-btn svg path {
+    fill: none;
+    stroke: currentColor;
+}
+
+.wishlist-btn:hover svg path {
     stroke: var(--color-white);
 }
 
-.wishlist-btn.active svg {
-    fill: var(--color-accent-gold);
-    stroke: var(--color-accent-gold);
+.wishlist-btn.active svg path {
+    fill: #e53935;
+    stroke: #e53935;
+}
+
+.wishlist-btn.active:hover svg path {
+    fill: var(--color-white);
+    stroke: var(--color-white);
 }
 
 /* Product Info */
