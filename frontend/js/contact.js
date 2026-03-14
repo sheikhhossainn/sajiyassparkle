@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Handle form submission
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
     e.preventDefault();
     
     // Clear previous alerts
@@ -44,25 +44,35 @@ function handleFormSubmit(e) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<svg class="btn-icon spinning" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Sending...';
         
-        // Simulate form submission (replace with actual API call)
-        setTimeout(function() {
-            // Randomly simulate success or failure for demo
-            const isSuccess = Math.random() > 0.2; // 80% success rate
-            
-            if (isSuccess) {
-                showAlert('success', 'Message Sent Successfully!', 'Thank you for contacting us. We will get back to you within 24 hours.');
-                e.target.reset();
-            } else {
-                showAlert('error', 'Failed to Send Message', 'There was an error sending your message. Please try again later.');
+        try {
+            const { supabase } = await import('./supabase.js');
+            const messagePayload = {
+                customer_name: data.name,
+                customer_email: data.email,
+                message_type: data.subject,
+                message_body: data.message
+            };
+            console.log('Messages insert payload:', messagePayload);
+            const { error } = await supabase
+                .from('messages')
+                .insert([messagePayload]);
+
+            if (error) {
+                throw error;
             }
-            
+
+            showAlert('success', 'Message Sent Successfully!', 'Thank you for contacting us. We will get back to you within 24 hours.');
+            e.target.reset();
+        } catch (error) {
+            showAlert('error', 'Failed to Send Message', 'Something went wrong, please try again.');
+        } finally {
             // Reset button
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
-            
+
             // Scroll to alert
             document.getElementById('alert-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 1500);
+        }
     } else {
         showAlert('error', 'Validation Error', 'Please correct the errors in the form before submitting.');
         
