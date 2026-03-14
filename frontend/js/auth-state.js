@@ -30,12 +30,15 @@ async function updateAuthUI() {
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('username, phone, address')
+                .select('username, phone, address, is_admin')
                 .eq('id', session.user.id)
                 .single();
             
-            // Check for missing profile or fields
-            if (error || !profile || !profile.username || !profile.phone || !profile.address) {
+            const isAdmin = profile?.is_admin === true;
+
+            // For admins, do not enforce phone/address completeness.
+            // For customers, keep the full profile requirement.
+            if (error || !profile || !profile.username || (!isAdmin && (!profile.phone || !profile.address))) {
                 console.warn('Incomplete profile. Redirecting to login.');
                 // Determine target URL based on current depth
                 const isPagesDir = currentPath.includes('/pages/');

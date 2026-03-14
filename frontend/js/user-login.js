@@ -49,6 +49,14 @@ function initializeAuth() {
                     return;
                 }
 
+                const isAdmin = profile?.is_admin === true;
+
+                if (isAdmin) {
+                    console.log("Admin account detected. Redirecting to admin dashboard...");
+                    window.location.href = 'admin-dashboard.html';
+                    return;
+                }
+
                 // Check completeness: username, phone, address
                 const isComplete = profile && 
                                    profile.username && profile.username.trim() !== '' &&
