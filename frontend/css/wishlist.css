@@ -48,35 +48,34 @@
     position: absolute;
     top: var(--spacing-sm);
     right: var(--spacing-sm);
-    background-color: #000000;
-    border: 1px solid #000000;
+    background-color: var(--color-white);
+    border: none;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .wishlist-remove-btn:hover {
-    background-color: #ffffff;
-    border-color: #000000;
+    background-color: #e53935;
     transform: scale(1.1);
 }
 
-.wishlist-remove-btn:hover svg {
-    stroke: #000000;
+.wishlist-remove-btn:hover svg path {
+    fill: var(--color-white);
+    stroke: var(--color-white);
 }
 
-.wishlist-remove-btn svg {
-    width: 20px;
-    height: 20px;
-    stroke: #ffffff;
-    transition: stroke 0.3s ease;
+.wishlist-remove-btn svg path {
+    fill: #e53935;
+    stroke: #e53935;
+    transition: fill 0.3s ease, stroke 0.3s ease;
 }
 
 .wishlist-card-image {
