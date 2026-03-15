@@ -9,6 +9,10 @@
     gap: 0.9rem;
 }
 
+.dashboard-stats-grid > * {
+    min-width: 0;
+}
+
 .dashboard-stat-card {
     background: #fff;
     border: 1px solid var(--color-border);
@@ -98,11 +102,25 @@
 }
 
 @media (max-width: 768px) {
+    .dashboard-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
     .quick-actions-row {
         flex-direction: column;
     }
 
     .quick-actions-row .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-stat-card {
+        padding: 0.9rem 1rem;
+    }
+
+    .dashboard-stat-card .stat-value {
+        font-size: 1.45rem;
     }
 }

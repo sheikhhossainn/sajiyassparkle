@@ -72,6 +72,14 @@
     display: block;
 }
 
+.about-story-image {
+    height: 520px;
+}
+
+.about-story-image img {
+    object-position: center 28%;
+}
+
 /* Mission Section */
 .about-mission-section {
     background-color: var(--color-neutral-light);
@@ -313,6 +321,10 @@
     .about-section-title {
         font-size: 1.75rem;
     }
+
+    .about-story-image {
+        height: 460px;
+    }
 }
 
 /* Mobile */
@@ -363,6 +375,10 @@
     .about-cta-title {
         font-size: 1.5rem;
     }
+
+    .about-story-image {
+        height: 400px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -386,5 +402,9 @@
 
     .about-commitment-icon {
         margin-top: 0;
+    }
+
+    .about-story-image {
+        height: 320px;
     }
 }
