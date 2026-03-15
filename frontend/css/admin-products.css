@@ -4,6 +4,7 @@
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    width: 100%;
 }
 
 /* ============================================
@@ -88,6 +89,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 /* ============================================
@@ -842,16 +844,47 @@ body.dark-mode .image-upload-label {
    ============================================ */
 
 @media (max-width: 968px) {
-    .admin-sidebar {
-        transform: translateX(-100%);
+    .admin-layout {
+        position: relative;
+        overflow-x: hidden;
     }
 
-    .admin-sidebar.show {
+    .admin-sidebar {
+        width: min(82vw, 300px);
+        transform: translateX(-100%);
+        z-index: 120;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-sidebar.show,
+    .admin-sidebar.open,
+    .admin-sidebar.active {
         transform: translateX(0);
     }
 
     .admin-main {
         margin-left: 0;
+        width: 100%;
+        min-width: 0;
+        position: relative;
+    }
+
+    .admin-main::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 110;
+    }
+
+    .admin-sidebar.show ~ .admin-main::before,
+    .admin-sidebar.open ~ .admin-main::before,
+    .admin-sidebar.active ~ .admin-main::before {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .menu-toggle {
@@ -889,6 +922,25 @@ body.dark-mode .image-upload-label {
     .admin-page-header {
         padding: var(--spacing-sm) var(--spacing-md);
     }
+
+    body {
+        overflow-x: hidden;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-page-title-wrap {
+        width: 100%;
+    }
+
+    .page-title {
+        font-size: 1.15rem;
+    }
+
+    .admin-page-subtitle {
+        font-size: 0.95rem;
+        line-height: 1.45;
+    }
 }
 
 @media (max-width: 768px) {
@@ -903,6 +955,64 @@ body.dark-mode .image-upload-label {
 
     .data-table {
         min-width: 800px;
+    }
+
+    #productsTable {
+        min-width: 0;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    #productsTable th:nth-child(1),
+    #productsTable td:nth-child(1),
+    #productsTable th:nth-child(4),
+    #productsTable th:nth-child(5),
+    #productsTable th:nth-child(6),
+    #productsTable th:nth-child(7),
+    #productsTable th:nth-child(8),
+    #productsTable td:nth-child(1),
+    #productsTable td:nth-child(4),
+    #productsTable td:nth-child(5),
+    #productsTable td:nth-child(6),
+    #productsTable td:nth-child(7),
+    #productsTable td:nth-child(8) {
+        display: none;
+    }
+
+    #productsTable th,
+    #productsTable td {
+        padding: 0.55rem 0.5rem;
+    }
+
+    #productsTable th:nth-child(2),
+    #productsTable td:nth-child(2) {
+        width: 64px;
+    }
+
+    #productsTable th:nth-child(3),
+    #productsTable td:nth-child(3) {
+        width: 42%;
+    }
+
+    #productsTable th:nth-child(9),
+    #productsTable td:nth-child(9) {
+        width: 48%;
+    }
+
+    #productsTable .product-name {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #productsTable .action-buttons {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    #productsTable .action-btn {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.78rem;
+        flex: 1 1 100%;
     }
 
     .navbar-container {
