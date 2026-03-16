@@ -6,6 +6,60 @@ const CART_KEY = 'sajiyasCart';
 
 let wishlistItems = [];
 let currentUserId = null;
+let cartItemsCache = [];
+const cartSyncTimers = new Map();
+
+async function ensureCartExists(userId) {
+    if (!userId) return;
+    try {
+        await supabase.from('carts').upsert({ user_id: userId });
+    } catch (err) {
+        console.warn('ensureCartExists failed', err);
+    }
+}
+
+async function upsertCartItem(userId, product, quantity) {
+    if (!userId || !product) return;
+    await ensureCartExists(userId);
+
+    if (quantity <= 0) {
+        await supabase.from('cart_items')
+            .delete()
+            .eq('user_id', userId)
+            .eq('product_id', product.id);
+        return;
+    }
+
+    await supabase.from('cart_items').upsert({
+        user_id: userId,
+        product_id: product.id,
+        quantity,
+        price_at_add: Number(product.price || 0)
+    });
+}
+
+function scheduleCartSync(product, quantity) {
+    if (!currentUserId || !product) return;
+
+    const key = String(product.id);
+    if (quantity <= 0) {
+        const existingTimer = cartSyncTimers.get(key);
+        if (existingTimer) clearTimeout(existingTimer);
+        cartSyncTimers.delete(key);
+        upsertCartItem(currentUserId, product, 0);
+        return;
+    }
+
+    const existingTimer = cartSyncTimers.get(key);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+        cartSyncTimers.delete(key);
+        upsertCartItem(currentUserId, product, quantity);
+    }, 350);
+
+    cartSyncTimers.set(key, timer);
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     initializeWishlistPage();
@@ -46,6 +100,87 @@ function redirectToLogin() {
     window.location.href = loginUrl;
 }
 
+function getMaxQuantity(product, existingItem = null) {
+    const productStock = Number(product?.stock_quantity);
+    const existingStock = Number(existingItem?.stock_quantity);
+
+    if (Number.isFinite(productStock) && productStock > 0) return productStock;
+    if (Number.isFinite(existingStock) && existingStock > 0) return existingStock;
+
+    return 99;
+}
+
+function normalizeCategory(rawCategory) {
+    const category = String(rawCategory || '').toLowerCase().trim();
+
+    if (category.startsWith('setitems')) return 'setitems';
+    if (category.startsWith('ring')) return 'rings';
+    if (category.startsWith('earring')) return 'earrings';
+    if (category.startsWith('bracelet')) return 'bracelets';
+    if (category.startsWith('necklace')) return 'necklaces';
+
+    return category;
+}
+
+function getPriceRangeForCategory(product) {
+    const category = normalizeCategory(product?.category);
+    const productName = String(product?.name || '').toLowerCase();
+
+    // Override only for jewellery sets that specifically mention ring/bracelet.
+    if (category === 'setitems' && (productName.includes('ring') || productName.includes('bracelet'))) {
+        return [300, 350];
+    }
+
+    if (category === 'rings') return [150, 220];
+    if (category === 'necklaces') return [200, 280];
+    if (category === 'bracelets') return [150, 220];
+    if (category === 'earrings') return [150, 220];
+    if (category === 'setitems') return [200, 500];
+
+    return null;
+}
+
+function getFixedPriceOverride(product) {
+    const name = String(product?.name || '').toLowerCase().trim();
+
+    if (name === 'nechlace+earring+ring 1' || name === 'necklace+earring+ring 1') return 500;
+    if (name === 'necklace+bracelet+ring') return 400;
+    if (name === 'necklace+earring 1') return 420;
+    if (name === 'necklace+earring+bracelet') return 450;
+
+    return null;
+}
+
+function getDeterministicCategoryPrice(product) {
+    const fixedPrice = getFixedPriceOverride(product);
+    if (fixedPrice !== null) return fixedPrice;
+
+    const range = getPriceRangeForCategory(product);
+    if (!range) return Number(product?.price || 0);
+
+    const [min, max] = range;
+    const start = Math.ceil(min / 5) * 5;
+    const end = Math.floor(max / 5) * 5;
+    if (start > end) return Number(product?.price || 0);
+
+    const steps = Math.floor((end - start) / 5) + 1;
+    const seed = `${product?.id ?? ''}-${product?.name ?? ''}-${product?.category ?? ''}`;
+    let hash = 0;
+
+    for (let i = 0; i < seed.length; i += 1) {
+        hash = ((hash * 31) + seed.charCodeAt(i)) | 0;
+    }
+
+    const stepIndex = Math.abs(hash) % steps;
+    return start + (stepIndex * 5);
+}
+
+function computeWishlistPrice(product) {
+    const price = Number(product?.price);
+    if (Number.isFinite(price) && price > 0 && price !== 99) return price;
+    return getDeterministicCategoryPrice(product);
+}
+
 async function loadWishlistFromSupabase() {
     if (!currentUserId) {
         wishlistItems = [];
@@ -54,7 +189,7 @@ async function loadWishlistFromSupabase() {
 
     const { data, error } = await supabase
         .from('wishlist')
-        .select('product_id, created_at, products!wishlist_product_id_fkey(id,name,price,image_url,category,stock_status)')
+        .select('product_id, created_at, products!wishlist_product_id_fkey(id,name,price,image_url,category,stock_status,stock_quantity)')
         .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
@@ -70,10 +205,11 @@ async function loadWishlistFromSupabase() {
         .map(product => ({
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: computeWishlistPrice(product),
             image_url: product.image_url || '',
             category: product.category || '',
-            stock_status: product.stock_status || 'in_stock'
+            stock_status: product.stock_status || 'in_stock',
+            stock_quantity: Number(product.stock_quantity) || 0
         }));
 }
 
@@ -109,7 +245,7 @@ function renderWishlist() {
                     </svg>
                 </button>
                 <div class="wishlist-card-image">
-                    <img src="${safeImage}" alt="${safeName}">
+                    <img src="${safeImage}" alt="${safeName}" loading="lazy" decoding="async" width="400" height="300">
                 </div>
                 <div class="wishlist-card-content">
                     <h3 class="wishlist-card-title">${safeName}</h3>
@@ -179,6 +315,11 @@ function addToCart(productId) {
     const product = wishlistItems.find((item) => Number(item.id) === productId);
     if (!product) return;
 
+    if (!currentUserId) {
+        showNotification('Please log in to add items to cart');
+        return;
+    }
+
     let cartItems = [];
     try {
         const raw = localStorage.getItem(CART_KEY);
@@ -189,11 +330,36 @@ function addToCart(productId) {
     }
 
     const existing = cartItems.find((item) => Number(item.id) === productId);
-    if (existing) {
-        existing.quantity = Number(existing.quantity || 1) + 1;
-    } else {
-        cartItems.push({ ...product, quantity: 1 });
+    const maxQuantity = getMaxQuantity(product, existing);
+    const currentQtyRaw = Number(existing?.quantity || 0);
+    const currentQty = Math.max(0, currentQtyRaw);
+    const clampedCurrent = Math.min(currentQty, maxQuantity);
+
+    if (existing && clampedCurrent !== currentQtyRaw) {
+        existing.quantity = clampedCurrent;
+        existing.stock_quantity = maxQuantity;
     }
+
+    if (clampedCurrent >= maxQuantity) {
+        localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+        if (typeof window.updateNavCartCount === 'function') {
+            window.updateNavCartCount();
+        }
+        showNotification(`You can only add ${maxQuantity} of this item (stock limit).`);
+        return;
+    }
+
+    const nextQty = existing ? Math.min(maxQuantity, clampedCurrent + 1) : 1;
+
+    if (existing) {
+        existing.quantity = nextQty;
+        existing.stock_quantity = maxQuantity;
+    } else {
+        cartItems.push({ ...product, quantity: nextQty, stock_quantity: maxQuantity });
+    }
+
+    // Persist to Supabase cart (debounced)
+    scheduleCartSync(product, nextQty);
 
     localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
     if (typeof window.updateNavCartCount === 'function') {

@@ -36,6 +36,106 @@ let wishlist = [];
 let currentUserId = null;
 updateCartCount();
 
+const cartSyncTimers = new Map();
+
+function scheduleCartSync(product, quantity) {
+    if (!currentUserId || !product) return;
+
+    const key = String(product.id);
+    if (quantity <= 0) {
+        const existingTimer = cartSyncTimers.get(key);
+        if (existingTimer) clearTimeout(existingTimer);
+        cartSyncTimers.delete(key);
+        upsertCartItem(currentUserId, product, 0);
+        return;
+    }
+
+    const existingTimer = cartSyncTimers.get(key);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+        cartSyncTimers.delete(key);
+        upsertCartItem(currentUserId, product, quantity);
+    }, 350);
+
+    cartSyncTimers.set(key, timer);
+}
+
+async function ensureCartExists(userId) {
+    if (!userId) return;
+    try {
+        await supabase.from('carts').upsert({ user_id: userId });
+    } catch (err) {
+        console.warn('ensureCartExists failed', err);
+    }
+}
+
+async function loadCartFromSupabase(userId) {
+    if (!userId) {
+        cart = [];
+        persistCart();
+        return;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('cart_items')
+            .select('product_id, quantity, price_at_add, products(id,name,price,image_url,category,stock_status,stock_quantity)')
+            .eq('user_id', userId);
+
+        if (error) {
+            console.warn('Could not load cart from Supabase:', error.message);
+            return;
+        }
+
+        cart = (data || []).map(row => {
+            const p = row.products || {};
+            return {
+                id: Number(row.product_id),
+                name: p.name,
+                price: Number(p.price ?? row.price_at_add ?? 0),
+                image_url: p.image_url || '',
+                category: p.category || '',
+                stock_status: p.stock_status || 'in_stock',
+                stock_quantity: Number(p.stock_quantity) || 0,
+                quantity: Math.max(1, Number(row.quantity || 1))
+            };
+        });
+
+        persistCart();
+    } catch (err) {
+        console.warn('Failed to load cart from Supabase:', err);
+    }
+}
+
+async function upsertCartItem(userId, product, quantity) {
+    if (!userId || !product) return;
+    await ensureCartExists(userId);
+
+    if (quantity <= 0) {
+        await supabase.from('cart_items')
+            .delete()
+            .eq('user_id', userId)
+            .eq('product_id', product.id);
+        return;
+    }
+
+    await supabase.from('cart_items').upsert({
+        user_id: userId,
+        product_id: product.id,
+        quantity,
+        price_at_add: Number(product.price || 0)
+    });
+}
+
+function persistCart() {
+    localStorage.setItem('sajiyasCart', JSON.stringify(cart));
+    updateCartCount();
+    if (typeof window.updateNavCartCount === 'function') {
+        window.updateNavCartCount();
+    }
+}
+
 function getResolvedImageUrl(rawImage) {
     const value = String(rawImage || '').trim();
     if (!value) return '';
@@ -75,7 +175,6 @@ function getFixedPriceOverride(product) {
 
     return null;
 }
-
 function getDeterministicCategoryPrice(product) {
     const fixedPrice = getFixedPriceOverride(product);
     if (fixedPrice !== null) return fixedPrice;
@@ -133,7 +232,7 @@ async function loadWishlistFromSupabase(userId) {
 
     const { data, error } = await supabase
         .from('wishlist')
-        .select('product_id, products!wishlist_product_id_fkey(id,name,price,image_url,category,stock_status)')
+        .select('product_id, products!wishlist_product_id_fkey(id,name,price,image_url,category,stock_status,stock_quantity)')
         .eq('user_id', userId);
 
     if (error) {
@@ -151,7 +250,8 @@ async function loadWishlistFromSupabase(userId) {
             price: product.price,
             image_url: product.image_url || '',
             category: product.category || '',
-            stock_status: product.stock_status || 'in_stock'
+            stock_status: product.stock_status || 'in_stock',
+            stock_quantity: Number(product.stock_quantity) || 0
         }));
 }
 
@@ -167,7 +267,7 @@ async function initializePage() {
     try {
         const { data, error } = await supabase
             .from('products')
-            .select('id,name,category,price,image_url,featured,description,stock_status,created_at');
+            .select('id,name,category,price,image_url,featured,description,stock_status,stock_quantity,created_at');
         if (!error && data && data.length > 0) {
             productsData = applyCategoryPriceMapping(data);
             // Update current products based on new data
@@ -202,7 +302,10 @@ async function initializePage() {
     updateCategoryPillCounts();
 
     currentUserId = await getCurrentUserId();
-    await loadWishlistFromSupabase(currentUserId);
+    await Promise.all([
+        loadWishlistFromSupabase(currentUserId),
+        loadCartFromSupabase(currentUserId)
+    ]);
 
     const hasInitialFilters = (urlCategory && urlCategory !== 'all') || Boolean(urlSearch);
     if (hasInitialFilters) {
@@ -458,7 +561,10 @@ function renderProducts() {
 }
 
 function createProductCard(product, index) {
-    const isInCart = cart.some(item => item.id === product.id);
+    const cartItem = cart.find(item => item.id === product.id);
+    const isInCart = Boolean(cartItem);
+    const cartQuantity = cartItem ? Math.max(1, Number(cartItem.quantity || 1)) : 0;
+    const maxQuantity = cartItem ? getMaxQuantity(product, cartItem) : null;
     
     // Check if we have an image URL from Supabase, otherwise mock data image
     const imageUrl = getResolvedImageUrl(product.image_url || product.image);
@@ -496,6 +602,11 @@ function createProductCard(product, index) {
                 <button class="btn btn-primary add-to-cart-btn ${isInCart || isOutOfStock ? 'in-cart' : ''}" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
                     ${isOutOfStock ? 'Out of Stock' : (isInCart ? 'In Cart' : 'Add to Cart')}
                 </button>
+                <div class="product-qty-control ${isInCart && !isOutOfStock ? 'show' : 'hidden'}" data-product-id="${product.id}">
+                    <button class="qty-btn" data-action="decrement" data-product-id="${product.id}" aria-label="Decrease quantity">-</button>
+                    <span class="qty-value" data-qty-for="${product.id}">${cartQuantity}</span>
+                    <button class="qty-btn" data-action="increment" data-product-id="${product.id}" aria-label="Increase quantity">+</button>
+                </div>
             </div>
         </div>
     `;
@@ -605,9 +716,9 @@ function renderPagination() {
 function attachProductListeners() {
     // Add to cart buttons
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
             const productId = parseInt(e.target.dataset.productId);
-            addToCart(productId);
+            await addToCart(productId);
         });
     });
     
@@ -619,32 +730,119 @@ function attachProductListeners() {
             toggleWishlist(productId);
         });
     });
+
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const productId = Number(e.currentTarget.dataset.productId);
+            const action = e.currentTarget.dataset.action;
+            if (!productId || !action) return;
+            const delta = action === 'increment' ? 1 : -1;
+            await adjustCartQuantity(productId, delta);
+        });
+    });
 }
 
-// Add product to cart
-function addToCart(productId) {
-    const product = productsData.find(p => p.id === productId);
-    if (!product) return;
-    
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        showNotification('Product already in cart!', 'info');
-        return;
-    }
-    
-    cart.push({ ...product, quantity: 1 });
-    localStorage.setItem('sajiyasCart', JSON.stringify(cart));
-    updateCartCount();
-    
-    // Update button state
+// Resolve the maximum quantity allowed for a product based on stock.
+function getMaxQuantity(product, existingItem = null) {
+    const productStock = Number(product?.stock_quantity);
+    const existingStock = Number(existingItem?.stock_quantity);
+
+    if (Number.isFinite(productStock) && productStock > 0) return productStock;
+    if (Number.isFinite(existingStock) && existingStock > 0) return existingStock;
+
+    // Fallback ceiling to avoid unbounded growth when stock is unknown
+    return 99;
+}
+
+function updateAddToCartButton(productId, quantity, maxQuantity) {
     const btn = document.querySelector(`.add-to-cart-btn[data-product-id="${productId}"]`);
-    if (btn) {
+    const qtyWrap = document.querySelector(`.product-qty-control[data-product-id="${productId}"]`);
+    const qtyValue = document.querySelector(`.qty-value[data-qty-for="${productId}"]`);
+
+    if (!btn) return;
+
+    if (quantity > 0) {
         btn.textContent = 'In Cart';
         btn.classList.add('in-cart');
+        btn.setAttribute('aria-pressed', 'true');
+        if (qtyWrap) qtyWrap.classList.remove('hidden');
+        if (qtyWrap) qtyWrap.classList.add('show');
+        if (qtyValue) qtyValue.textContent = Math.min(quantity, maxQuantity);
+    } else {
+        btn.textContent = 'Add to Cart';
+        btn.classList.remove('in-cart');
+        btn.removeAttribute('aria-pressed');
+        if (qtyWrap) qtyWrap.classList.remove('show');
+        if (qtyWrap) qtyWrap.classList.add('hidden');
+        if (qtyValue) qtyValue.textContent = '0';
     }
-    
-    showNotification('Added to cart!', 'success');
+}
+
+// Adjust quantity with Supabase sync
+async function adjustCartQuantity(productId, delta) {
+    if (!currentUserId) {
+        currentUserId = await getCurrentUserId();
+    }
+
+    if (!currentUserId) {
+        showNotification('Please log in to manage your cart.', 'info');
+        return;
+    }
+
+    const product = productsData.find(p => Number(p.id) === Number(productId));
+    if (!product) return;
+
+    const existingItem = cart.find(item => Number(item.id) === Number(productId));
+    const maxQuantity = getMaxQuantity(product, existingItem);
+
+    const currentQty = Math.max(0, Number(existingItem?.quantity || 0));
+    const nextQty = Math.min(maxQuantity, currentQty + delta);
+
+    if (nextQty <= 0) {
+        cart = cart.filter(item => Number(item.id) !== Number(productId));
+        scheduleCartSync(product, 0);
+        persistCart();
+        updateAddToCartButton(productId, 0, maxQuantity);
+        showNotification('Removed from cart', 'info');
+        return;
+    }
+
+    if (existingItem) {
+        existingItem.quantity = nextQty;
+        existingItem.stock_quantity = maxQuantity;
+    } else {
+        cart.push({ ...product, quantity: nextQty, stock_quantity: maxQuantity });
+    }
+
+    scheduleCartSync(product, nextQty);
+    persistCart();
+    updateAddToCartButton(productId, nextQty, maxQuantity);
+    showNotification(delta > 0 ? 'Added to cart!' : 'Quantity updated', 'success');
+}
+
+// Add product to cart (single action; show controls if already present)
+async function addToCart(productId) {
+    const product = productsData.find(p => p.id === productId);
+    if (!product) return;
+    if ((product.stock_status || '').toLowerCase() === 'out_of_stock') {
+        showNotification('This item is out of stock.', 'info');
+        return;
+    }
+
+    const existingItem = cart.find(item => Number(item.id) === Number(productId));
+    if (existingItem) {
+        const maxQuantity = getMaxQuantity(product, existingItem);
+        const qty = Math.max(1, Math.min(maxQuantity, Number(existingItem.quantity || 1)));
+        existingItem.quantity = qty;
+        existingItem.stock_quantity = maxQuantity;
+        scheduleCartSync(product, qty);
+        persistCart();
+        updateAddToCartButton(productId, qty, maxQuantity);
+        return;
+    }
+
+    await adjustCartQuantity(productId, 1);
 }
 
 // Toggle wishlist

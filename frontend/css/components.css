@@ -180,6 +180,51 @@
     width: 100%;
 }
 
+.product-qty-control {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: var(--spacing-sm);
+}
+
+.product-qty-control.show {
+    display: inline-flex;
+}
+
+.product-qty-control.hidden {
+    display: none;
+}
+
+.qty-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    border-radius: var(--radius-sm);
+    color: var(--color-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qty-btn:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.qty-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.qty-value {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
 /* Feature Card */
 .feature-card {
     text-align: center;
