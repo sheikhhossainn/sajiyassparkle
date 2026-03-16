@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /pages/admin-*.html
+Disallow: /pages/user-login.html
+Disallow: /pages/checkout.html
+Disallow: /pages/wishlist.html
+
+Sitemap: https://sajiyassparkle.vercel.app/sitemap.xml

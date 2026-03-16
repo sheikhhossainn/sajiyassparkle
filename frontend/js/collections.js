@@ -3,27 +3,8 @@ import { supabase } from './supabase.js';
 // Unified Shop Page JavaScript
 // Combines category browsing with product listing
 
-// Sample product data
-let productsData = [
-    { id: 1, name: "Diamond Solitaire Ring", category: "rings", price: 45000, image: "ring1.jpg", featured: true, date: "2026-02-01" },
-    { id: 2, name: "Gold Engagement Ring", category: "rings", price: 32000, image: "ring2.jpg", featured: true, date: "2026-01-28" },
-    { id: 3, name: "Pearl Necklace Set", category: "necklaces", price: 28000, image: "necklace1.jpg", featured: false, date: "2026-01-25" },
-    { id: 4, name: "Diamond Pendant Necklace", category: "necklaces", price: 55000, image: "necklace2.jpg", featured: true, date: "2026-02-03" },
-    { id: 5, name: "Ruby Drop Earrings", category: "earrings", price: 18000, image: "earring1.jpg", featured: false, date: "2026-01-20" },
-    { id: 6, name: "Diamond Stud Earrings", category: "earrings", price: 42000, image: "earring2.jpg", featured: true, date: "2026-02-02" },
-    { id: 7, name: "Gold Bangle Bracelet", category: "bracelets", price: 25000, image: "bracelet1.jpg", featured: false, date: "2026-01-15" },
-    { id: 8, name: "Diamond Tennis Bracelet", category: "bracelets", price: 68000, image: "bracelet2.jpg", featured: true, date: "2026-02-04" },
-    { id: 9, name: "Bridal Necklace Set", category: "bridal", price: 125000, image: "bridal1.jpg", featured: true, date: "2026-02-05" },
-    { id: 10, name: "Wedding Ring Set", category: "bridal", price: 95000, image: "bridal2.jpg", featured: true, date: "2026-02-06" },
-    { id: 11, name: "Sapphire Ring", category: "rings", price: 38000, image: "ring3.jpg", featured: false, date: "2026-01-18" },
-    { id: 12, name: "Emerald Necklace", category: "necklaces", price: 72000, image: "necklace3.jpg", featured: false, date: "2026-01-22" },
-    { id: 13, name: "Gold Hoop Earrings", category: "earrings", price: 12000, image: "earring3.jpg", featured: false, date: "2026-01-12" },
-    { id: 14, name: "Silver Charm Bracelet", category: "bracelets", price: 8500, image: "bracelet3.jpg", featured: false, date: "2026-01-10" },
-    { id: 15, name: "Platinum Band Ring", category: "rings", price: 52000, image: "ring4.jpg", featured: true, date: "2026-01-30" },
-    { id: 16, name: "Choker Necklace", category: "necklaces", price: 22000, image: "necklace4.jpg", featured: false, date: "2026-01-14" },
-    { id: 17, name: "Crystal Drop Earrings", category: "earrings", price: 15000, image: "earring4.jpg", featured: false, date: "2026-01-16" },
-    { id: 18, name: "Rose Gold Bracelet", category: "bracelets", price: 19000, image: "bracelet4.jpg", featured: false, date: "2026-01-19" },
-];
+// Product data is loaded from Supabase.
+let productsData = [];
 
 // State management
 let currentProducts = [...productsData];
@@ -133,19 +114,28 @@ async function initializePage() {
             currentProducts = [...productsData];
             console.log('Loaded products from Supabase');
         } else {
-            console.log('Using mock product data (Supabase fetch empty/error)');
+            productsData = [];
+            currentProducts = [];
+            console.warn('No products returned from Supabase. Showing empty state.');
         }
     } catch (e) {
-        console.warn('Supabase fetch failed, using mock data:', e);
+        productsData = [];
+        currentProducts = [];
+        console.warn('Supabase fetch failed. Showing empty state:', e);
     }
 
-    // Check URL parameters for category
+    // Check URL parameters for category and search
     const urlParams = new URLSearchParams(window.location.search);
     const urlCategory = urlParams.get('category');
+    const urlSearch = (urlParams.get('search') || '').trim();
     
     if (urlCategory && urlCategory !== 'all') {
         selectedCategory = urlCategory;
         updateCategoryPillActive(urlCategory);
+    }
+
+    if (searchInput && urlSearch) {
+        searchInput.value = urlSearch;
     }
     
     // Update category counts after data is loaded
@@ -153,8 +143,13 @@ async function initializePage() {
 
     currentUserId = await getCurrentUserId();
     await loadWishlistFromSupabase(currentUserId);
-    
-    renderProducts();
+
+    const hasInitialFilters = (urlCategory && urlCategory !== 'all') || Boolean(urlSearch);
+    if (hasInitialFilters) {
+        handleFilters();
+    } else {
+        renderProducts();
+    }
 }
 
 // Event Listeners
@@ -318,7 +313,7 @@ function sortProducts(products, sortOption) {
         case 'price-high-low':
             return sorted.sort((a, b) => b.price - a.price);
         case 'newest':
-            return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return sorted.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
         case 'name-asc':
             return sorted.sort((a, b) => a.name.localeCompare(b.name));
         case 'name-desc':
