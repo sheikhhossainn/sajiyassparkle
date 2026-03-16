@@ -15,6 +15,78 @@ function getResolvedImageUrl(rawImage) {
     return data?.publicUrl || '';
 }
 
+function normalizeProductCategory(rawCategory) {
+    const category = String(rawCategory || '').toLowerCase().trim();
+
+    if (category.includes('ring')) return 'rings';
+    if (category.includes('necklace')) return 'necklaces';
+    if (category.includes('bracelet')) return 'bracelets';
+    if (category.includes('earring')) return 'earrings';
+    if (category.includes('set')) return 'setitems';
+
+    return category;
+}
+
+function getPriceRangeForCategory(product) {
+    const category = normalizeProductCategory(product?.category);
+    const productName = String(product?.name || '').toLowerCase();
+
+    // Override only for jewellery sets that specifically mention ring/bracelet.
+    if (category === 'setitems' && (productName.includes('ring') || productName.includes('bracelet'))) {
+        return [300, 350];
+    }
+
+    if (category === 'rings') return [150, 220];
+    if (category === 'necklaces') return [200, 280];
+    if (category === 'bracelets') return [150, 220];
+    if (category === 'earrings') return [150, 220];
+    if (category === 'setitems') return [200, 500];
+
+    return null;
+}
+
+function getFixedPriceOverride(product) {
+    const name = String(product?.name || '').toLowerCase().trim();
+
+    if (name === 'nechlace+earring+ring 1' || name === 'necklace+earring+ring 1') return 500;
+    if (name === 'necklace+bracelet+ring') return 400;
+    if (name === 'necklace+earring 1') return 420;
+    if (name === 'necklace+earring+bracelet') return 450;
+
+    return null;
+}
+
+function getDeterministicCategoryPrice(product) {
+    const fixedPrice = getFixedPriceOverride(product);
+    if (fixedPrice !== null) return fixedPrice;
+
+    const range = getPriceRangeForCategory(product);
+    if (!range) return Number(product?.price || 0);
+
+    const [min, max] = range;
+    const start = Math.ceil(min / 5) * 5;
+    const end = Math.floor(max / 5) * 5;
+    if (start > end) return Number(product?.price || 0);
+
+    const steps = Math.floor((end - start) / 5) + 1;
+    const seed = `${product?.id ?? ''}-${product?.name ?? ''}-${product?.category ?? ''}`;
+    let hash = 0;
+
+    for (let i = 0; i < seed.length; i += 1) {
+        hash = ((hash * 31) + seed.charCodeAt(i)) | 0;
+    }
+
+    const stepIndex = Math.abs(hash) % steps;
+    return start + (stepIndex * 5);
+}
+
+function applyCategoryPriceMapping(products) {
+    return (products || []).map((product) => ({
+        ...product,
+        price: getDeterministicCategoryPrice(product)
+    }));
+}
+
 function buildProductCollectionsLink(product) {
     const params = new URLSearchParams();
     if (product?.category) {
@@ -75,6 +147,8 @@ async function loadFeaturedProducts() {
             productsToShow = [...productsToShow, ...(fallbackData || [])];
         }
 
+        productsToShow = applyCategoryPriceMapping(productsToShow);
+
         if (productsToShow.length > 0) {
             const cards = productsToShow.map((product) => {
                 const imageUrl = getResolvedImageUrl(product.image_url);
@@ -92,7 +166,7 @@ async function loadFeaturedProducts() {
                             </div>
                             <div class="product-card-content">
                                 <h3 class="product-card-title">${escapeHtml(product.name)}</h3>
-                                <p class="product-card-price">BDT ${Number(product.price || 0).toLocaleString('en-BD')}</p>
+                                <p class="product-card-price">BDT ${Number(product.price || 0).toLocaleString('en-BD')} each</p>
                             </div>
                         </div>
                     </a>
