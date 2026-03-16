@@ -4,6 +4,8 @@ import { supabase } from './supabase.js';
 // User Login & Profile Completion - JavaScript
 // ============================================
 
+const ADMIN_ONLY_EMAIL = 'admin@local.test';
+
 function initializeAuth() {
     console.log("Initializing Auth Logic...");
 
@@ -34,6 +36,13 @@ function initializeAuth() {
         
         if (session) {
             console.log("User session found:", session.user.id);
+
+            if (String(session.user.email || '').toLowerCase() === ADMIN_ONLY_EMAIL) {
+                showErrorAlert('This account is admin-only. Please use the admin login page.');
+                await supabase.auth.signOut();
+                window.location.href = 'admin-login.html';
+                return;
+            }
             
             // Check if profile exists and has required fields
             try {
@@ -124,10 +133,6 @@ function initializeAuth() {
                 provider: 'google',
                 options: {
                     redirectTo: redirectUrl,
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
                 },
             });
              

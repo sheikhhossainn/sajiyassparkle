@@ -64,7 +64,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main>
+    <main id="main-checkout-content" style="opacity: 0; transition: opacity 0.3s ease;">
         <!-- Checkout Header -->
         <section class="checkout-header">
             <div class="container">
@@ -100,7 +100,7 @@
                     <div class="alert-message">
                         <strong>Error:</strong> <span id="errorMessage">Please fix the errors in the form before proceeding.</span>
                     </div>
-                    <button class="alert-close" onclick="hideErrorAlert()">
+                    <button class="alert-close" id="errorAlertClose" type="button">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
@@ -125,7 +125,7 @@
                                     id="fullName" 
                                     name="fullName"
                                     class="form-input" 
-                                    placeholder="Enter your full name"
+                                    placeholder="Sajiya"
                                     required
                                 >
                                 <span class="form-error" id="fullNameError"></span>
@@ -153,7 +153,7 @@
                                     id="phone" 
                                     name="phone"
                                     class="form-input" 
-                                    placeholder="+91 98765 43210"
+                                    placeholder="01XXXXXXXXX"
                                     required
                                 >
                                 <span class="form-error" id="phoneError"></span>
@@ -189,38 +189,17 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="state" class="form-label">State <span class="required">*</span></label>
+                                    <label for="state" class="form-label">Division <span class="required">*</span></label>
                                     <select id="state" name="state" class="form-input" required>
-                                        <option value="">Select State</option>
-                                        <option value="AP">Andhra Pradesh</option>
-                                        <option value="AR">Arunachal Pradesh</option>
-                                        <option value="AS">Assam</option>
-                                        <option value="BR">Bihar</option>
-                                        <option value="CG">Chhattisgarh</option>
-                                        <option value="GA">Goa</option>
-                                        <option value="GJ">Gujarat</option>
-                                        <option value="HR">Haryana</option>
-                                        <option value="HP">Himachal Pradesh</option>
-                                        <option value="JK">Jammu and Kashmir</option>
-                                        <option value="JH">Jharkhand</option>
-                                        <option value="KA">Karnataka</option>
-                                        <option value="KL">Kerala</option>
-                                        <option value="MP">Madhya Pradesh</option>
-                                        <option value="MH">Maharashtra</option>
-                                        <option value="MN">Manipur</option>
-                                        <option value="ML">Meghalaya</option>
-                                        <option value="MZ">Mizoram</option>
-                                        <option value="NL">Nagaland</option>
-                                        <option value="OR">Odisha</option>
-                                        <option value="PB">Punjab</option>
-                                        <option value="RJ">Rajasthan</option>
-                                        <option value="SK">Sikkim</option>
-                                        <option value="TN">Tamil Nadu</option>
-                                        <option value="TG">Telangana</option>
-                                        <option value="TR">Tripura</option>
-                                        <option value="UP">Uttar Pradesh</option>
-                                        <option value="UT">Uttarakhand</option>
-                                        <option value="WB">West Bengal</option>
+                                        <option value="">Select Division</option>
+                                        <option value="Dhaka">Dhaka</option>
+                                        <option value="Chattogram">Chattogram</option>
+                                        <option value="Khulna">Khulna</option>
+                                        <option value="Rajshahi">Rajshahi</option>
+                                        <option value="Barishal">Barishal</option>
+                                        <option value="Sylhet">Sylhet</option>
+                                        <option value="Rangpur">Rangpur</option>
+                                        <option value="Mymensingh">Mymensingh</option>
                                     </select>
                                     <span class="form-error" id="stateError"></span>
                                 </div>
@@ -234,9 +213,9 @@
                                     id="postalCode" 
                                     name="postalCode"
                                     class="form-input" 
-                                    placeholder="600001"
+                                    placeholder="1205"
                                     required
-                                    maxlength="6"
+                                    maxlength="4"
                                 >
                                 <span class="form-error" id="postalCodeError"></span>
                             </div>
@@ -252,6 +231,48 @@
                                     placeholder="Any special delivery instructions..."
                                 ></textarea>
                             </div>
+
+                            <!-- Payment Method -->
+                            <div class="payment-section" id="paymentSection">
+                                <h3 class="payment-title">Payment Method</h3>
+                                <div class="form-group">
+                                    <label for="paymentMethod" class="form-label">Choose Payment Method <span class="required">*</span></label>
+                                    <select id="paymentMethod" name="paymentMethod" class="form-input" required>
+                                        <option value="cash_on_delivery">Cash on Delivery</option>
+                                        <option value="bkash">bKash</option>
+                                        <option value="nagad">Nagad</option>
+                                    </select>
+                                    <span class="form-error" id="paymentMethodError"></span>
+                                </div>
+
+                                <div id="mobilePaymentFields" class="mobile-payment-fields" hidden>
+                                    <div class="payment-instructions" id="paymentInstructions"></div>
+
+                                    <div class="form-group">
+                                        <label for="senderNumber" class="form-label">Your Sender Number <span class="required">*</span></label>
+                                        <input
+                                            type="tel"
+                                            id="senderNumber"
+                                            name="senderNumber"
+                                            class="form-input"
+                                            placeholder="01XXXXXXXXX"
+                                        >
+                                        <span class="form-error" id="senderNumberError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="transactionId" class="form-label">Transaction ID <span class="required">*</span></label>
+                                        <input
+                                            type="text"
+                                            id="transactionId"
+                                            name="transactionId"
+                                            class="form-input"
+                                            placeholder="Enter TrxID"
+                                        >
+                                        <span class="form-error" id="transactionIdError"></span>
+                                    </div>
+                                </div>
+                            </div>
                         </form>
                     </div>
 
@@ -260,55 +281,33 @@
                         <h2 class="checkout-section-title">Order Summary</h2>
                         
                         <!-- Order Items -->
-                        <div class="order-items">
-                            <div class="order-item-card">
-                                <div class="order-item-image">
-                                    <img src="https://placehold.co/100x100/f5f5f5/d4af37?text=Gold+Necklace" alt="Gold Necklace">
-                                </div>
-                                <div class="order-item-details">
-                                    <h3 class="order-item-title">Gold Necklace</h3>
-                                    <p class="order-item-meta">22K Gold • 10.5g</p>
-                                    <p class="order-item-quantity">Quantity: 1</p>
-                                </div>
-                                <div class="order-item-price">BDT 12,500</div>
-                            </div>
-
-                            <div class="order-item-card">
-                                <div class="order-item-image">
-                                    <img src="https://placehold.co/100x100/f5f5f5/c0c0c0?text=Diamond+Ring" alt="Diamond Ring">
-                                </div>
-                                <div class="order-item-details">
-                                    <h3 class="order-item-title">Diamond Ring</h3>
-                                    <p class="order-item-meta">18K White Gold • 0.5ct Diamond</p>
-                                    <p class="order-item-quantity">Quantity: 1</p>
-                                </div>
-                                <div class="order-item-price">BDT 25,000</div>
-                            </div>
+                        <div class="order-items" id="orderItemsContainer">
+                            <p class="customer-meta">Loading cart items...</p>
                         </div>
 
                         <!-- Order Totals -->
                         <div class="order-summary">
                             <div class="summary-row">
                                 <span class="summary-label">Subtotal</span>
-                                <span class="summary-value">BDT 37,500</span>
+                                <span class="summary-value" id="summarySubtotal">BDT 0</span>
                             </div>
                             <div class="summary-row">
                                 <span class="summary-label">Shipping</span>
-                                <span class="summary-value summary-free">Free</span>
+                                <span class="summary-value summary-free" id="summaryShipping">Free</span>
                             </div>
                             <div class="summary-row">
-                                <span class="summary-label">Tax (3%)</span>
-                                <span class="summary-value">BDT 1,125</span>
+                                <span class="summary-label">Tax</span>
+                                <span class="summary-value" id="summaryTax">BDT 0</span>
                             </div>
                             <div class="summary-divider"></div>
                             <div class="summary-row summary-total">
                                 <span class="summary-label">Total</span>
-                                <span class="summary-value">BDT 38,625</span>
+                                <span class="summary-value" id="summaryTotal">BDT 0</span>
                             </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="button" id="submitBtn" class="btn btn-primary btn-submit" onclick="handleSubmit()">
+                        <button type="button" id="submitBtn" class="btn btn-primary btn-submit">
                             <span id="submitBtnText">Proceed to Payment</span>
                             <span id="submitBtnLoader" class="btn-loader" style="display: none;">
                                 <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -319,14 +318,6 @@
                             </span>
                         </button>
 
-                        <!-- Security Badge -->
-                        <div class="security-badge">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M9 12L11 14L15 10" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <span>Secure Checkout • 256-bit SSL Encryption</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -361,174 +352,8 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script>
-        // Form Validation
-        function validateForm() {
-            let isValid = true;
-            const form = document.getElementById('checkoutForm');
-            
-            // Clear previous errors
-            document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
-            document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
-
-            // Full Name Validation
-            const fullName = document.getElementById('fullName');
-            if (!fullName.value.trim()) {
-                showFieldError('fullName', 'Full name is required');
-                isValid = false;
-            } else if (fullName.value.trim().length < 2) {
-                showFieldError('fullName', 'Name must be at least 2 characters');
-                isValid = false;
-            }
-
-            // Email Validation
-            const email = document.getElementById('email');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email.value.trim()) {
-                showFieldError('email', 'Email address is required');
-                isValid = false;
-            } else if (!emailRegex.test(email.value)) {
-                showFieldError('email', 'Please enter a valid email address');
-                isValid = false;
-            }
-
-            // Phone Validation
-            const phone = document.getElementById('phone');
-            const phoneRegex = /^[\d\s\+\-\(\)]{10,15}$/;
-            if (!phone.value.trim()) {
-                showFieldError('phone', 'Phone number is required');
-                isValid = false;
-            } else if (!phoneRegex.test(phone.value.trim())) {
-                showFieldError('phone', 'Please enter a valid phone number');
-                isValid = false;
-            }
-
-            // Address Validation
-            const address = document.getElementById('address');
-            if (!address.value.trim()) {
-                showFieldError('address', 'Street address is required');
-                isValid = false;
-            } else if (address.value.trim().length < 10) {
-                showFieldError('address', 'Please enter a complete address');
-                isValid = false;
-            }
-
-            // City Validation
-            const city = document.getElementById('city');
-            if (!city.value.trim()) {
-                showFieldError('city', 'City is required');
-                isValid = false;
-            }
-
-            // State Validation
-            const state = document.getElementById('state');
-            if (!state.value) {
-                showFieldError('state', 'Please select a state');
-                isValid = false;
-            }
-
-            // Postal Code Validation
-            const postalCode = document.getElementById('postalCode');
-            const postalRegex = /^\d{6}$/;
-            if (!postalCode.value.trim()) {
-                showFieldError('postalCode', 'Postal code is required');
-                isValid = false;
-            } else if (!postalRegex.test(postalCode.value.trim())) {
-                showFieldError('postalCode', 'Please enter a valid 6-digit postal code');
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        function showFieldError(fieldId, message) {
-            const errorEl = document.getElementById(fieldId + 'Error');
-            const inputEl = document.getElementById(fieldId);
-            errorEl.textContent = message;
-            inputEl.classList.add('error');
-        }
-
-        function showErrorAlert(message) {
-            const alertEl = document.getElementById('errorAlert');
-            const messageEl = document.getElementById('errorMessage');
-            messageEl.textContent = message;
-            alertEl.style.display = 'block';
-            
-            // Scroll to top to show error
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                hideErrorAlert();
-            }, 5000);
-        }
-
-        function hideErrorAlert() {
-            document.getElementById('errorAlert').style.display = 'none';
-        }
-
-        function setLoading(isLoading) {
-            const submitBtn = document.getElementById('submitBtn');
-            const btnText = document.getElementById('submitBtnText');
-            const btnLoader = document.getElementById('submitBtnLoader');
-
-            if (isLoading) {
-                submitBtn.disabled = true;
-                submitBtn.classList.add('loading');
-                btnText.style.display = 'none';
-                btnLoader.style.display = 'flex';
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('loading');
-                btnText.style.display = 'inline';
-                btnLoader.style.display = 'none';
-            }
-        }
-
-        async function handleSubmit() {
-            // Hide any existing errors
-            hideErrorAlert();
-
-            // Validate form
-            if (!validateForm()) {
-                showErrorAlert('Please fix the errors in the form before proceeding.');
-                return;
-            }
-
-            // Set loading state
-            setLoading(true);
-
-            // Simulate API call
-            try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                // Success - In a real app, redirect to payment
-                alert('Form submitted successfully! Redirecting to payment...');
-                // window.location.href = 'payment.html';
-                
-            } catch (error) {
-                showErrorAlert('An error occurred while processing your request. Please try again.');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        // Real-time validation on blur
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.addEventListener('blur', function() {
-                    if (this.hasAttribute('required') && this.value.trim()) {
-                        // Validate individual field on blur
-                        const errorId = this.id + 'Error';
-                        document.getElementById(errorId).textContent = '';
-                        this.classList.remove('error');
-                    }
-                });
-            });
-        });
-    </script>
+    <script type="module" src="../js/auth-state.js"></script>
+    <script type="module" src="../js/checkout.js"></script>
     <script type="module" src="../js/cart-nav.js"></script>
 </body>
 

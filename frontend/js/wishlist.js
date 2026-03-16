@@ -19,6 +19,9 @@ async function initializeWishlistPage() {
         return;
     }
 
+    const mainContent = document.getElementById('main-wishlist-content');
+    if (mainContent) mainContent.style.opacity = '1';
+
     await loadWishlistFromSupabase();
     renderWishlist();
 }
