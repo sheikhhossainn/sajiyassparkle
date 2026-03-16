@@ -47,6 +47,66 @@ function getResolvedImageUrl(rawImage) {
     return data?.publicUrl || '';
 }
 
+function getPriceRangeForCategory(product) {
+    const category = normalizeCategory(product?.category);
+    const productName = String(product?.name || '').toLowerCase();
+
+    // Override only for jewellery sets that specifically mention ring/bracelet.
+    if (category === 'setitems' && (productName.includes('ring') || productName.includes('bracelet'))) {
+        return [300, 350];
+    }
+
+    if (category === 'rings') return [150, 220];
+    if (category === 'necklaces') return [200, 280];
+    if (category === 'bracelets') return [150, 220];
+    if (category === 'earrings') return [150, 220];
+    if (category === 'setitems') return [200, 500];
+
+    return null;
+}
+
+function getFixedPriceOverride(product) {
+    const name = String(product?.name || '').toLowerCase().trim();
+
+    if (name === 'nechlace+earring+ring 1' || name === 'necklace+earring+ring 1') return 500;
+    if (name === 'necklace+bracelet+ring') return 400;
+    if (name === 'necklace+earring 1') return 420;
+    if (name === 'necklace+earring+bracelet') return 450;
+
+    return null;
+}
+
+function getDeterministicCategoryPrice(product) {
+    const fixedPrice = getFixedPriceOverride(product);
+    if (fixedPrice !== null) return fixedPrice;
+
+    const range = getPriceRangeForCategory(product);
+    if (!range) return Number(product?.price || 0);
+
+    const [min, max] = range;
+    const start = Math.ceil(min / 5) * 5;
+    const end = Math.floor(max / 5) * 5;
+    if (start > end) return Number(product?.price || 0);
+
+    const steps = Math.floor((end - start) / 5) + 1;
+    const seed = `${product?.id ?? ''}-${product?.name ?? ''}-${product?.category ?? ''}`;
+    let hash = 0;
+
+    for (let i = 0; i < seed.length; i += 1) {
+        hash = ((hash * 31) + seed.charCodeAt(i)) | 0;
+    }
+
+    const stepIndex = Math.abs(hash) % steps;
+    return start + (stepIndex * 5);
+}
+
+function applyCategoryPriceMapping(products) {
+    return (products || []).map((product) => ({
+        ...product,
+        price: getDeterministicCategoryPrice(product)
+    }));
+}
+
 function isWishlisted(productId) {
     return wishlist.some(item => Number(item.id) === Number(productId));
 }
@@ -109,7 +169,7 @@ async function initializePage() {
             .from('products')
             .select('id,name,category,price,image_url,featured,description,stock_status,created_at');
         if (!error && data && data.length > 0) {
-            productsData = data;
+            productsData = applyCategoryPriceMapping(data);
             // Update current products based on new data
             currentProducts = [...productsData];
             console.log('Loaded products from Supabase');
@@ -292,8 +352,8 @@ function handleFilters() {
         const selectedPrice = priceFilter.value;
         if (selectedPrice !== 'all') {
             filtered = filtered.filter(product => {
-                if (selectedPrice === '50000+') {
-                    return product.price >= 50000;
+                if (selectedPrice.endsWith('+')) {
+                    return product.price >= parseInt(selectedPrice);
                 }
                 const [min, max] = selectedPrice.split('-').map(Number);
                 return product.price >= min && product.price <= max;
@@ -432,7 +492,7 @@ function createProductCard(product, index) {
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
                 <p class="product-category">${formatCategory(product.category)}</p>
-                <p class="product-price">BDT ${product.price.toLocaleString('en-BD')}</p>
+                <p class="product-price">BDT ${product.price.toLocaleString('en-BD')} each</p>
                 <button class="btn btn-primary add-to-cart-btn ${isInCart || isOutOfStock ? 'in-cart' : ''}" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
                     ${isOutOfStock ? 'Out of Stock' : (isInCart ? 'In Cart' : 'Add to Cart')}
                 </button>
