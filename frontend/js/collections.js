@@ -147,6 +147,13 @@ async function initializePage() {
     const hasInitialFilters = (urlCategory && urlCategory !== 'all') || Boolean(urlSearch);
     if (hasInitialFilters) {
         handleFilters();
+        // Scroll to results when coming from a filtered link (e.g. Featured section)
+        setTimeout(() => {
+            const target = document.querySelector('.category-quick-filters');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 500);
     } else {
         renderProducts();
     }
@@ -191,6 +198,12 @@ function toggleAdvancedFilters() {
 // Handle category change
 function handleCategoryChange(category) {
     selectedCategory = category;
+    
+    // Clear search input when switching categories to ensure items are shown
+    if (searchInput) {
+        searchInput.value = '';
+    }
+
     updateCategoryPillActive(category);
     currentPage = 1;
     handleFilters();
