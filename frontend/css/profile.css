@@ -210,7 +210,17 @@
     color: #e65100;
 }
 
+.order-status-pending_verification {
+    background-color: #fff8e1;
+    color: #f57f17;
+}
+
 .order-status-cancelled {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.order-status-rejected {
     background-color: #ffebee;
     color: #c62828;
 }
@@ -281,6 +291,11 @@
     border-top: 1px solid var(--color-border);
 }
 
+.order-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .order-total {
     display: flex;
     flex-direction: column;
@@ -323,6 +338,11 @@
         flex-direction: column;
         gap: var(--spacing-md);
         align-items: stretch;
+    }
+
+    .order-actions {
+        flex-direction: column;
+        width: 100%;
     }
 
     .order-details-btn {
@@ -381,6 +401,11 @@
         flex-direction: column;
         gap: var(--spacing-md);
         align-items: stretch;
+    }
+
+    .order-actions {
+        flex-direction: column;
+        width: 100%;
     }
 
     .order-total {

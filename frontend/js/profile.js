@@ -15,14 +15,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
 
+    const mainContent = document.getElementById('main-profile-content');
+    if (mainContent) mainContent.style.opacity = '1';
+
     const user = session.user;
     console.log('Current User:', user);
 
-    // Load User Profile Data
-    await loadUserProfile(user);
-
-    // Load User Orders
-    await loadUserOrders(user.id);
+    // Load Data Concurrently but let profile do optimistic render instantly
+    loadUserProfile(user);
+    loadUserOrders(user.id);
 
     // Handle editing profile
     const editProfileBtn = document.querySelector('.profile-edit-btn');
@@ -148,8 +149,31 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 async function loadUserProfile(user) {
-    let profileData = {};
+    // 1. Optimistic Render (Fast)
+    const initialName = user.user_metadata?.full_name || user.email.split('@')[0];
+    const emailElement = document.querySelector('.profile-email');
+    const nameElement = document.querySelector('.profile-name');
+    const avatarContainer = document.querySelector('.profile-avatar');
 
+    if (nameElement) nameElement.textContent = initialName;
+    if (emailElement) emailElement.textContent = user.email;
+
+    const initialAvatarUrl = resolveGoogleAvatarUrl(user) ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(initialName)}&background=d4af37&color=fff`;
+    if (avatarContainer) {
+        renderAvatarWithFallback(avatarContainer, initialAvatarUrl, initialName);
+    }
+
+    const memberSinceDate = new Date(user.created_at);
+    const memberSince = memberSinceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    updateInfoItem('Member Since', memberSince);
+    
+    // Set fallback initial states 
+    updateInfoItem('Address', user.user_metadata?.address || 'Address not added');
+    updateInfoItem('Phone', user.user_metadata?.phone || 'Phone not added');
+
+    // 2. Fetch from database (Async)
+    let profileData = {};
     try {
         const { data, error } = await supabase
             .from('profiles')
@@ -159,61 +183,90 @@ async function loadUserProfile(user) {
         
         if (data) {
             profileData = data;
-        } else if (error) {
-           // Not found is okay, other errors warn
+        } else if (error && error.code !== 'PGRST116') { // Ignore "Not Found" error
            console.warn('Profile fetch warning:', error);
         }
     } catch (err) {
         console.error('Error loading profile:', err);
     }
     
-    // Update global state for edit modal
     currentProfileData = profileData;
 
-    // 1. Name
-    const nameElement = document.querySelector('.profile-name');
-    // Prioritize profile table > metadata > email
-    const fullName = profileData.username || user.user_metadata?.full_name || user.email.split('@')[0];
-    if (nameElement) nameElement.textContent = fullName;
-
-
-    // 2. Email
-    const emailElement = document.querySelector('.profile-email');
-    if (emailElement) emailElement.textContent = user.email;
-
-    // 3. Avatar
-    const avatarContainer = document.querySelector('.profile-avatar');
-    // Use UI Avatars if user has no avatar_url in metadata
-    const avatarUrl = user.user_metadata?.avatar_url || 
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=d4af37&color=fff`;
-        
-    if (avatarContainer) {
-        avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    // 3. Update DOM with database data if different
+    if (profileData.username) {
+        if (nameElement) nameElement.textContent = profileData.username;
+        if (avatarContainer && !resolveGoogleAvatarUrl(user)) {
+             // Only update avatar if not using a Google provided one
+             const updatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.username)}&background=d4af37&color=fff`;
+             renderAvatarWithFallback(avatarContainer, updatedAvatar, profileData.username);
+        }
     }
 
-    // 4. Address & Phone
-    // Check profile table first, then metadata
-    const address = profileData.address || user.user_metadata?.address || 'Address not added';
-    const phone = profileData.phone || user.user_metadata?.phone || 'Phone not added';
+    if (profileData.address || user.user_metadata?.address) {
+         updateInfoItem('Address', profileData.address || user.user_metadata?.address || 'Address not added');
+    }
     
-    // Format Date: "January 2026"
-    const memberSinceDate = new Date(user.created_at);
-    const memberSince = memberSinceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (profileData.phone || user.user_metadata?.phone) {
+         updateInfoItem('Phone', profileData.phone || user.user_metadata?.phone || 'Phone not added');
+    }
+}
 
-    // Helper to find the text element next to a label
+function updateInfoItem(label, text) {
     const infoItems = document.querySelectorAll('.profile-info-item');
     infoItems.forEach(item => {
         const labelEl = item.querySelector('.profile-info-label');
-        if (labelEl) {
-            const labelText = labelEl.textContent.trim();
+        if (labelEl && labelEl.textContent.trim() === label) {
             const textEl = item.querySelector('.profile-info-text');
-            if (textEl) {
-                if (labelText === 'Address') textEl.textContent = address;
-                if (labelText === 'Phone') textEl.textContent = phone;
-                if (labelText === 'Member Since') textEl.textContent = memberSince;
-            }
+            if (textEl) textEl.textContent = text;
         }
     });
+}
+
+function renderAvatarWithFallback(container, avatarUrl, fullName) {
+    container.innerHTML = '';
+
+    const image = document.createElement('img');
+    image.src = avatarUrl;
+    image.alt = 'Profile';
+    image.setAttribute('referrerpolicy', 'no-referrer');
+    image.style.width = '100%';
+    image.style.height = '100%';
+    image.style.borderRadius = '50%';
+    image.style.objectFit = 'cover';
+
+    image.addEventListener('error', () => {
+        const initials = getInitials(fullName);
+        container.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;background:#f5f5f5;border:1px solid #d4af37;color:#1a1a1a;font-weight:700;font-size:1.25rem;">${initials}</span>`;
+    });
+
+    container.appendChild(image);
+}
+
+function getInitials(name) {
+    return String(name || 'U')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part.charAt(0).toUpperCase())
+        .join('') || 'U';
+}
+
+function resolveGoogleAvatarUrl(user) {
+    const identityData = Array.isArray(user?.identities)
+        ? user.identities.map(identity => identity?.identity_data || {})
+        : [];
+
+    const candidates = [
+        ...identityData.map(data => data.avatar_url),
+        ...identityData.map(data => data.picture),
+        user?.user_metadata?.avatar_url,
+        user?.user_metadata?.picture
+    ];
+
+    const firstValid = candidates.find(url => typeof url === 'string' && url.trim().length > 0);
+    if (!firstValid) return '';
+    
+    return String(firstValid).trim();
 }
 
 async function loadUserOrders(userId) {
@@ -283,8 +336,10 @@ function renderEmptyOrdersState(container) {
 function createOrderElement(order) {
     const date = new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const status = order.status || 'pending';
-    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+    const statusLabel = status.replace(/_/g, ' ').toUpperCase();
     const total = parseFloat(order.total_amount || 0).toLocaleString();
+
+    const formattedId = isNaN(order.id) ? order.id.substring(0, 8).toUpperCase() : String(order.id).padStart(4, '0');
 
     // Build products list HTML
     let productsHtml = '';
@@ -317,7 +372,7 @@ function createOrderElement(order) {
     div.innerHTML = `
         <div class="order-header">
             <div class="order-header-left">
-                <h3 class="order-number">Order #${order.id}</h3>
+                  <h3 class="order-number">Order #SJS-${formattedId}</h3>
                 <span class="order-date">
                     <svg class="order-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
@@ -331,19 +386,22 @@ function createOrderElement(order) {
             <span class="order-status order-status-${status.toLowerCase()}">${statusLabel}</span>
         </div>
         
-        <div class="order-products">
+<div class="order-products" id="order-products-${order.id}" style="display: none; border-top: 1px solid #eaeaea; padding-top: 1rem; margin-top: 1rem;">
             ${productsHtml}
         </div>
-        
+
         <div class="order-footer">
             <div class="order-total">
                 <span class="order-total-label">Total Amount:</span>
-                <span class="order-total-price">BDT ${total}</span>
+                <span class="order-total-price">৳${total}</span>
             </div>
-            <button class="btn btn-secondary order-details-btn" data-order-id="${order.id}">View Details</button>
+            <div class="order-actions">
+               <button class="btn btn-secondary order-details-btn toggle-details-btn" data-order-id="${order.id}">Toggle Details</button>
+               <a href="order-confirmation.html?order_id=${order.id}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; text-align: center;">View Receipt</a>
+            </div>
         </div>
     `;
-    
+
     // Add hover effect via JS since we're creating dynamically (or CSS handles it)
     div.addEventListener('mouseenter', () => div.style.borderColor = 'var(--color-accent-gold)');
     div.addEventListener('mouseleave', () => div.style.borderColor = ''); // Reset to CSS default
@@ -352,11 +410,19 @@ function createOrderElement(order) {
 }
 
 function attachOrderListeners() {
-    // Re-attach listeners for any buttons inside the dynamic content
-    const btns = document.querySelectorAll('.order-details-btn');
+    // Toggle Products List
+    const btns = document.querySelectorAll('.toggle-details-btn');
     btns.forEach(btn => {
         btn.addEventListener('click', () => {
-             alert(`Order details feature for #${btn.dataset.orderId} coming soon!`);
+             const orderId = btn.dataset.orderId;
+             const productsDiv = document.getElementById(`order-products-${orderId}`);
+             if (productsDiv.style.display === 'none') {
+                 productsDiv.style.display = 'block';
+                 btn.textContent = 'Hide Details';
+             } else {
+                 productsDiv.style.display = 'none';
+                 btn.textContent = 'Toggle Details';
+             }
         });
     });
 }

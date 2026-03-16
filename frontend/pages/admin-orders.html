@@ -101,14 +101,15 @@
                             </button>
                             <h1 class="page-title">View Orders</h1>
                         </div>
-                        <p class="admin-page-subtitle">Every order with customer, items, date, delivery address, and status.</p>
+                        <p class="admin-page-subtitle">Every order with customer, items, payment details, delivery address, and status.</p>
                     </div>
 
                     <section class="content-section">
                         <div class="orders-stats-grid">
-                            <article class="orders-stat-card"><p>Pending</p><h3 id="ordersPendingCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Pending Verification</p><h3 id="ordersPendingCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Processing</p><h3 id="ordersProcessingCount">0</h3></article>
                             <article class="orders-stat-card"><p>Delivered</p><h3 id="ordersDeliveredCount">0</h3></article>
-                            <article class="orders-stat-card"><p>Completed</p><h3 id="ordersCompletedCount">0</h3></article>
+                            <article class="orders-stat-card"><p>Rejected</p><h3 id="ordersRejectedCount">0</h3></article>
                             <article class="orders-stat-card"><p>Total</p><h3 id="ordersTotalCount">0</h3></article>
                         </div>
                     </section>
@@ -120,7 +121,7 @@
                                 <p class="card-subtitle">Grouped by order, newest first.</p>
                             </div>
                             <div class="card-body">
-                                <div id="ordersCardsContainer" class="orders-cards-grid">
+                                  <div id="ordersCardsContainer">
                                     <div class="orders-loading">Loading orders...</div>
                                 </div>
                             </div>

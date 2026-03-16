@@ -64,7 +64,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main>
+    <main id="main-order-confirmation-content" style="opacity: 0; transition: opacity 0.3s ease;">
         <!-- Success Alert -->
         <div class="alert alert-success">
             <div class="container">
@@ -74,7 +74,7 @@
                         <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="alert-message">
-                        <strong>Order Confirmed!</strong> Your order has been successfully placed. A confirmation email has been sent to your registered email address.
+                        <strong>Order Confirmed!</strong> Your order has been successfully placed.
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     <p class="confirmation-subtitle">Your order has been confirmed and will be shipped soon.</p>
                     <div class="order-number">
                         <span class="order-number-label">Order Number:</span>
-                        <span class="order-number-value">#SJS-2026-0205-1247</span>
+                        <span class="order-number-value" id="order-id-display">Loading...</span>
                     </div>
                 </div>
 
@@ -104,50 +104,28 @@
                         <h2 class="section-title">Order Summary</h2>
 
                         <!-- Ordered Items -->
-                        <div class="order-items">
-                            <div class="order-item">
-                                <div class="order-item-image">
-                                    <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80" alt="Diamond Necklace">
-                                </div>
-                                <div class="order-item-details">
-                                    <h3 class="order-item-name">Diamond Elegance Necklace</h3>
-                                    <p class="order-item-info">Quantity: 1</p>
-                                    <p class="order-item-info">Size: Standard</p>
-                                </div>
-                                <div class="order-item-price">$2,499.00</div>
-                            </div>
-
-                            <div class="order-item">
-                                <div class="order-item-image">
-                                    <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=80" alt="Gold Earrings">
-                                </div>
-                                <div class="order-item-details">
-                                    <h3 class="order-item-name">Golden Sparkle Earrings</h3>
-                                    <p class="order-item-info">Quantity: 1</p>
-                                    <p class="order-item-info">Material: 18K Gold</p>
-                                </div>
-                                <div class="order-item-price">$1,299.00</div>
-                            </div>
+                        <div class="order-items" id="order-items-container">
+                            <p>Loading items...</p>
                         </div>
 
                         <!-- Order Details -->
                         <div class="order-details">
                             <div class="order-detail-row">
                                 <span class="order-detail-label">Subtotal</span>
-                                <span class="order-detail-value">$3,798.00</span>
+                                <span class="order-detail-value" id="order-subtotal">Loading...</span>
                             </div>
                             <div class="order-detail-row">
                                 <span class="order-detail-label">Shipping</span>
-                                <span class="order-detail-value order-detail-free">Free</span>
+                                <span class="order-detail-value order-detail-free" id="order-shipping">Free</span>
                             </div>
                             <div class="order-detail-row">
                                 <span class="order-detail-label">Tax</span>
-                                <span class="order-detail-value">$379.80</span>
+                                <span class="order-detail-value" id="order-tax">৳0.00</span>
                             </div>
                             <div class="order-detail-divider"></div>
                             <div class="order-detail-row order-detail-total">
                                 <span class="order-detail-label">Total</span>
-                                <span class="order-detail-value">$4,177.80</span>
+                                <span class="order-detail-value" id="order-total">Loading...</span>
                             </div>
                         </div>
                     </div>
@@ -164,11 +142,8 @@
                                 </svg>
                                 Delivery Address
                             </h3>
-                            <div class="info-content">
-                                <p>Liza Anderson</p>
-                                <p>123 Jewelry Lane</p>
-                                <p>New York, NY 10001</p>
-                                <p>United States</p>
+                            <div class="info-content" id="delivery-address">
+                                <p>Loading...</p>
                             </div>
                         </div>
 
@@ -181,9 +156,8 @@
                                 </svg>
                                 Payment Method
                             </h3>
-                            <div class="info-content">
-                                <p>Visa ending in 4242</p>
-                                <p>Exp: 12/2027</p>
+                            <div class="info-content" id="payment-method">
+                                <p>Loading...</p>
                             </div>
                         </div>
 
@@ -198,7 +172,7 @@
                                 Estimated Delivery
                             </h3>
                             <div class="info-content">
-                                <p class="delivery-date">February 12, 2026</p>
+                                <p class="delivery-date" id="delivery-date">Loading...</p>
                                 <p class="delivery-note">3-5 business days</p>
                             </div>
                         </div>
@@ -211,9 +185,8 @@
                                 </svg>
                                 Contact Information
                             </h3>
-                            <div class="info-content">
-                                <p>liza.anderson@email.com</p>
-                                <p>(555) 123-4567</p>
+                            <div class="info-content" id="contact-info">
+                                <p>Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -221,9 +194,8 @@
 
                 <!-- Navigation Buttons -->
                 <div class="confirmation-actions">
-                    <a href="categories.html" class="btn btn-primary">Continue Shopping</a>
-                    <a href="#" class="btn btn-secondary">Track Order</a>
-                    <a href="#" class="btn btn-secondary">View Order Details</a>
+                    <a href="collections.html" class="btn btn-primary">Continue Shopping</a>
+                    <a href="profile.html" class="btn btn-secondary">View Order Details</a>
                 </div>
 
                 <!-- Additional Information -->
@@ -234,7 +206,7 @@
                             <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             <circle cx="12" cy="8" r="0.5" fill="currentColor" stroke="currentColor"/>
                         </svg>
-                        Need help with your order? Contact our customer support at <a href="mailto:support@sajiyassparkle.com">support@sajiyassparkle.com</a> or call <a href="tel:+15551234567">(555) 123-4567</a>
+                        Need help with your order? Contact us on <a href="https://www.facebook.com/profile.php?id=100095140924699" target="_blank" rel="noopener noreferrer">Facebook</a> or WhatsApp us at <a href="https://wa.me/8801614409676" target="_blank" rel="noopener noreferrer">+880 1614-409676</a>
                     </p>
                 </div>
             </div>
@@ -268,6 +240,8 @@
             </div>
         </div>
     </footer>
+    <script type="module" src="../js/auth-state.js"></script>
+    <script type="module" src="../js/order-confirmation.js"></script>
     <script type="module" src="../js/cart-nav.js"></script>
 </body>
 
