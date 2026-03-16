@@ -15,6 +15,18 @@ function getResolvedImageUrl(rawImage) {
     return data?.publicUrl || '';
 }
 
+function buildProductCollectionsLink(product) {
+    const params = new URLSearchParams();
+    if (product?.category) {
+        params.set('category', String(product.category));
+    }
+    if (product?.name) {
+        params.set('search', String(product.name));
+    }
+    const query = params.toString();
+    return query ? `pages/collections.html?${query}` : 'pages/collections.html';
+}
+
 async function loadFeaturedProducts() {
     const marqueeRoot = document.getElementById('featuredMarqueeRoot');
     if (!marqueeRoot) return;
@@ -66,13 +78,14 @@ async function loadFeaturedProducts() {
         if (productsToShow.length > 0) {
             const cards = productsToShow.map((product) => {
                 const imageUrl = getResolvedImageUrl(product.image_url);
+                const productLink = buildProductCollectionsLink(product);
                 const imageHtml = imageUrl
                     ? `<img src="${imageUrl}" alt="${escapeHtml(product.name)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" loading="lazy">`
                     : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f2f2f2;color:#777;font-size:0.85rem;">No image</div>`;
 
                 return `
                 <article class="featured-slide">
-                    <a href="pages/collections.html" class="featured-slide-link" aria-label="View ${escapeHtml(product.name)} in collection">
+                    <a href="${productLink}" class="featured-slide-link" aria-label="View ${escapeHtml(product.name)} in collection">
                         <div class="product-card">
                             <div class="product-card-image" style="position: relative; padding-top: 100%; overflow: hidden;">
                                 ${imageHtml}
