@@ -3,6 +3,12 @@ import { supabase } from './supabase.js';
 
 const ADMIN_ONLY_EMAIL = 'admin@local.test';
 
+function markAuthUiReady() {
+    if (document.body) {
+        document.body.classList.add('auth-ui-ready');
+    }
+}
+
 // Global error handler for OAuth redirects
 function handleAuthErrors() {
     const hash = window.location.hash.substring(1);
@@ -19,50 +25,73 @@ function handleAuthErrors() {
     }
 }
 
+// Store session in sessionStorage to prevent flickering on page navigation
+function getCachedSessionSync() {
+    try {
+        const cached = sessionStorage.getItem('_supabase_session_cache');
+        if (cached) {
+            return JSON.parse(cached);
+        }
 
-async function updateAuthUI() {
-    handleAuthErrors();
-    const { data: { session } } = await supabase.auth.getSession();
+        // Fallback: read Supabase persisted auth token synchronously.
+        // This avoids a brief "Login" flash on first page load/new tab.
+        const localKey = Object.keys(localStorage).find(
+            (key) => key.startsWith('sb-') && key.endsWith('-auth-token')
+        );
+        if (!localKey) return null;
+
+        const raw = localStorage.getItem(localKey);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        const fromWrapped = parsed?.currentSession || parsed?.session || null;
+        const fromDirect = parsed?.user ? parsed : null;
+        const session = fromWrapped || fromDirect;
+
+        if (session?.user) {
+            sessionStorage.setItem('_supabase_session_cache', JSON.stringify(session));
+            return session;
+        }
+
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setCachedSession(session) {
+    try {
+        sessionStorage.setItem('_supabase_session_cache', JSON.stringify(session));
+    } catch (e) {
+        console.warn('Failed to cache session:', e);
+    }
+}
+
+// Track the last rendered state to prevent unnecessary re-renders
+let lastRenderedUserId = null;
+let lastRenderedIsLoggedIn = null;
+
+// Seed render tracker from cached session to avoid repainting over
+// the inline bootstrap render on first load.
+const initialCachedSession = getCachedSessionSync();
+lastRenderedIsLoggedIn = initialCachedSession !== null;
+lastRenderedUserId = initialCachedSession?.user?.id || null;
+
+// Render the auth UI based on session
+function renderAuthUI(session) {
     const currentPath = window.location.pathname.toLowerCase();
-
-    if (session && String(session.user?.email || '').toLowerCase() === ADMIN_ONLY_EMAIL && !currentPath.includes('admin-login.html')) {
-        await supabase.auth.signOut();
-        const isPagesDir = currentPath.includes('/pages/');
-        window.location.href = isPagesDir ? 'admin-login.html' : 'pages/admin-login.html';
+    const isLoggedIn = session !== null;
+    const userId = session?.user?.id;
+    
+    // Only re-render if state actually changed
+    if (lastRenderedIsLoggedIn === isLoggedIn && lastRenderedUserId === userId) {
         return;
     }
     
-    // Check if we are already on a login page
-    const isLoginPage = currentPath.includes('user-login.html') || currentPath.includes('admin-login.html');
-
-    if (session && !isLoginPage) {
-        try {
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('username, phone, address, is_admin')
-                .eq('id', session.user.id)
-                .single();
-            
-            const isAdmin = profile?.is_admin === true;
-
-            // For admins, do not enforce phone/address completeness.
-            // For customers, keep the full profile requirement.
-            if (error || !profile || !profile.username || (!isAdmin && (!profile.phone || !profile.address))) {
-                console.warn('Incomplete profile. Redirecting to login.');
-                // Determine target URL based on current depth
-                const isPagesDir = currentPath.includes('/pages/');
-                const target = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
-                
-                window.location.href = target;
-                return; // Stop execution
-            }
-        } catch (err) {
-            console.error('Profile check error:', err);
-        }
-    }
-
+    lastRenderedIsLoggedIn = isLoggedIn;
+    lastRenderedUserId = userId;
+    
     // Select the login link/button in the navbar
-    // We look for the link that points to the login page
     const loginLink = document.querySelector('a[href*="user-login.html"]');
     
     if (!loginLink) return;
@@ -74,7 +103,6 @@ async function updateAuthUI() {
         // Determine correct path to profile page based on current location
         // If we are in /pages/, it's just 'profile.html'
         // If we are in root, it's 'pages/profile.html'
-        const currentPath = window.location.pathname;
         const isPagesDir = currentPath.includes('/pages/');
         const profileUrl = isPagesDir ? 'profile.html' : 'pages/profile.html';
 
@@ -134,12 +162,11 @@ async function updateAuthUI() {
         loginLink.appendChild(navText);
     } else {
         // User is logged out - ensure it looks like Login
-        // This is the default state, but we might need to revert if user logs out without refreshing
-        // (though usually we redirect on logout)
-        const isPagesDir = window.location.pathname.includes('/pages/');
+        const isPagesDir = currentPath.includes('/pages/');
         const loginUrl = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
         
         loginLink.href = loginUrl;
+        loginLink.classList.remove('auth-state-logged-in');
         loginLink.innerHTML = `
             <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -148,14 +175,90 @@ async function updateAuthUI() {
             Login
         `;
     }
+
+    markAuthUiReady();
 }
 
-// Run immediately on load
-document.addEventListener('DOMContentLoaded', updateAuthUI);
+async function updateAuthUI() {
+    try {
+        handleAuthErrors();
+
+        // Get cached session and render immediately - no async calls
+        const session = getCachedSessionSync();
+        renderAuthUI(session);
+
+        const currentPath = window.location.pathname.toLowerCase();
+
+        // Do all validations asynchronously without touching the DOM
+        // Verify session matches cached version
+        const { data: { session: freshSession } } = await supabase.auth.getSession();
+        
+        // Update cache silently
+        if (freshSession) {
+            setCachedSession(freshSession);
+        } else {
+            sessionStorage.removeItem('_supabase_session_cache');
+        }
+
+        // Handle admin-only email redirect (no DOM changes)
+        if (freshSession && String(freshSession.user?.email || '').toLowerCase() === ADMIN_ONLY_EMAIL && !currentPath.includes('admin-login.html')) {
+            await supabase.auth.signOut();
+            const isPagesDir = currentPath.includes('/pages/');
+            window.location.href = isPagesDir ? 'admin-login.html' : 'pages/admin-login.html';
+            return;
+        }
+        
+        // Check if we are on a login page
+        const isLoginPage = currentPath.includes('user-login.html') || currentPath.includes('admin-login.html');
+
+        // Validate profile completeness (no DOM changes)
+        if (freshSession && !isLoginPage) {
+            try {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('username, phone, address, is_admin')
+                    .eq('id', freshSession.user.id)
+                    .single();
+                
+                const isAdmin = profile?.is_admin === true;
+
+                // For admins, do not enforce phone/address completeness.
+                // For customers, keep the full profile requirement.
+                if (error || !profile || !profile.username || (!isAdmin && (!profile.phone || !profile.address))) {
+                    console.warn('Incomplete profile. Redirecting to login.');
+                    // Determine target URL based on current depth
+                    const isPagesDir = currentPath.includes('/pages/');
+                    const target = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
+                    
+                    window.location.href = target;
+                    return; 
+                }
+            } catch (err) {
+                console.error('Profile check error:', err);
+            }
+        }
+    } catch (err) {
+        console.error('Failed to verify session:', err);
+    } finally {
+        // Ensure the auth slot is revealed even if an early error occurs.
+        markAuthUiReady();
+    }
+}
+
+// Run as early as possible (scripts are loaded at end of body on these pages)
+updateAuthUI();
 
 // Also run when auth state changes (e.g. login/logout in another tab)
 supabase.auth.onAuthStateChange((event, session) => {
-    updateAuthUI();
+    const cachedSession = getCachedSessionSync();
+    const sessionId = session?.user?.id;
+    const cachedId = cachedSession?.user?.id;
+    
+    // Only update if the actual login state changed (not on every event)
+    if ((session === null) !== (cachedSession === null) || sessionId !== cachedId) {
+        setCachedSession(session);
+        renderAuthUI(session);
+    }
 });
 
 function resolveGoogleAvatarUrl(user) {

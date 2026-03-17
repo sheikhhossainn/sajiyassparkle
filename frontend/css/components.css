@@ -73,6 +73,15 @@
     flex-shrink: 0;
 }
 
+/* Prevent login/avatar micro-flicker until auth UI has been hydrated */
+.nav-actions .nav-action:first-child {
+    visibility: hidden;
+}
+
+body.auth-ui-ready .nav-actions .nav-action:first-child {
+    visibility: visible;
+}
+
 /* ============================================
    Buttons
    ============================================ */
