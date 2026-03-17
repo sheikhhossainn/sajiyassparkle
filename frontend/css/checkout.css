@@ -324,6 +324,40 @@ select.form-input option {
     color: var(--color-neutral-medium);
 }
 
+.order-item-qty-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    border-radius: var(--radius-sm);
+    color: var(--color-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.order-item-max {
+    font-size: var(--font-size-xsmall, 0.8rem);
+    color: var(--color-neutral-medium);
+}
+
 .order-item-price {
     font-size: var(--font-size-body);
     font-weight: 600;

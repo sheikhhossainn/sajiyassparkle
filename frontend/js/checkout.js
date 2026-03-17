@@ -4,10 +4,97 @@ const CART_KEY = 'sajiyasCart';
 const SHOP_MOBILE_PAYMENT_NUMBER = '01614409676';
 
 let cartItems = [];
+let checkoutUserId = null;
+const cartSyncTimers = new Map();
+
+async function loadCartFromSupabase(userId) {
+    try {
+        const { data, error } = await supabase
+            .from('cart_items')
+            .select('product_id, quantity, price_at_add, products(id,name,price,image_url,category,stock_status,stock_quantity)')
+            .eq('user_id', userId);
+
+        if (error) throw error;
+
+        return (data || []).map(row => {
+            const p = row.products || {};
+            return {
+                id: Number(row.product_id),
+                name: p.name,
+                price: Number(p.price ?? row.price_at_add ?? 0),
+                image_url: p.image_url || '',
+                category: p.category || '',
+                stock_status: p.stock_status || 'in_stock',
+                stock_quantity: Number(p.stock_quantity) || 0,
+                quantity: Math.max(1, Number(row.quantity || 1))
+            };
+        });
+    } catch (err) {
+        console.error('Could not load cart from Supabase:', err);
+        return [];
+    }
+}
+
+async function upsertCartItem(userId, productId, quantity, price) {
+    if (!userId) return;
+    if (quantity <= 0) {
+        await supabase.from('cart_items').delete().eq('user_id', userId).eq('product_id', productId);
+        return;
+    }
+    await supabase.from('carts').upsert({ user_id: userId });
+    await supabase.from('cart_items').upsert({
+        user_id: userId,
+        product_id: productId,
+        quantity,
+        price_at_add: price
+    });
+}
+
+function scheduleCartSync(productId, quantity, price) {
+    if (!checkoutUserId) return;
+    const key = String(productId);
+
+    if (quantity <= 0) {
+        const existingTimer = cartSyncTimers.get(key);
+        if (existingTimer) clearTimeout(existingTimer);
+        cartSyncTimers.delete(key);
+        upsertCartItem(checkoutUserId, productId, 0, price);
+        return;
+    }
+
+    const existingTimer = cartSyncTimers.get(key);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+        cartSyncTimers.delete(key);
+        upsertCartItem(checkoutUserId, productId, quantity, price);
+    }, 350);
+
+    cartSyncTimers.set(key, timer);
+}
+
+async function clearCartInSupabase(userId) {
+    if (!userId) return;
+    await supabase.from('cart_items').delete().eq('user_id', userId);
+}
+
+function getMaxQuantity(item) {
+    const stock = Number(item?.stock_quantity);
+    if (Number.isFinite(stock) && stock > 0) return stock;
+    return 99;
+}
+
+function persistCart() {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+    if (typeof window.updateNavCartCount === 'function') {
+        window.updateNavCartCount();
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     const user = await ensureAuthenticatedCheckoutAccess();
     if (!user) return;
+    checkoutUserId = user.id;
 
     const mainContent = document.getElementById('main-checkout-content');
     if (mainContent) {
@@ -17,7 +104,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupUiEvents();
     toggleMobilePaymentFields();
 
-    cartItems = loadCartItems();
+    cartItems = await loadCartFromSupabase(user.id);
+    cartItems = cartItems.map(item => ({ ...item, user_id: user.id }));
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
     renderOrderSummary(cartItems);
 
     await prefillProfileDetails();
@@ -75,18 +164,6 @@ function setupUiEvents() {
     });
 }
 
-function loadCartItems() {
-    try {
-        const raw = localStorage.getItem(CART_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(parsed)) return [];
-        return parsed.filter(item => Number(item?.id) > 0);
-    } catch (error) {
-        console.warn('Could not parse cart items:', error);
-        return [];
-    }
-}
-
 function renderOrderSummary(items) {
     const container = document.getElementById('orderItemsContainer');
 
@@ -103,9 +180,10 @@ function renderOrderSummary(items) {
 
     container.innerHTML = items.map(item => {
         const name = escapeHtml(item.name || 'Product');
-        const quantity = Number(item.quantity || 1);
+        const quantity = Math.max(1, Number(item.quantity || 1));
         const price = Number(item.price || 0);
         const image = escapeHtml(item.image_url || item.image || 'https://placehold.co/100x100?text=Item');
+        const maxQuantity = getMaxQuantity(item);
 
         return `
             <div class="order-item-card">
@@ -114,18 +192,58 @@ function renderOrderSummary(items) {
                 </div>
                 <div class="order-item-details">
                     <h3 class="order-item-title">${name}</h3>
-                    <p class="order-item-quantity">Quantity: ${quantity}</p>
+                    <div class="order-item-qty-control" data-product-id="${item.id}">
+                        <button class="quantity-btn" data-action="decrement" data-product-id="${item.id}" aria-label="Decrease quantity">-</button>
+                        <span class="order-item-quantity">${quantity}</span>
+                        <button class="quantity-btn" data-action="increment" data-product-id="${item.id}" aria-label="Increase quantity">+</button>
+                        <span class="order-item-max">Max ${maxQuantity}</span>
+                    </div>
                 </div>
                 <div class="order-item-price">BDT ${formatMoney(price * quantity)}</div>
             </div>
         `;
     }).join('');
 
+    container.querySelectorAll('.quantity-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const productId = Number(e.currentTarget.dataset.productId);
+            const action = e.currentTarget.dataset.action;
+            if (!productId || !action) return;
+
+            const delta = action === 'increment' ? 1 : -1;
+            adjustCartQuantity(productId, delta);
+        });
+    });
+
     const subtotal = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
     const tax = 0;
     const total = subtotal + tax;
 
     setSummaryValues(subtotal, tax, total);
+}
+
+async function adjustCartQuantity(productId, delta) {
+    const index = cartItems.findIndex(item => Number(item.id) === Number(productId));
+    if (index === -1) return;
+
+    const item = cartItems[index];
+    const maxQty = getMaxQuantity(item);
+    const currentQty = Math.max(0, Number(item.quantity || 1));
+    const nextQty = Math.min(maxQty, currentQty + delta);
+
+    const userId = checkoutUserId;
+
+    if (nextQty <= 0) {
+        cartItems.splice(index, 1);
+        scheduleCartSync(productId, 0, Number(item.price || 0));
+    } else {
+        item.quantity = nextQty;
+        item.stock_quantity = maxQty;
+        scheduleCartSync(productId, nextQty, Number(item.price || 0));
+    }
+
+    persistCart();
+    renderOrderSummary(cartItems);
 }
 
 function setSummaryValues(subtotal, tax, total) {
@@ -301,6 +419,7 @@ async function handleSubmit() {
             throw new Error('Order could not be created.');
         }
 
+        await clearCartInSupabase(user.id);
         localStorage.removeItem(CART_KEY);
         if (typeof window.updateNavCartCount === 'function') {
             window.updateNavCartCount();
