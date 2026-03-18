@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 
 let currentProfileData = {};
+const PROFILE_AVATAR_SIZE = 320;
 
 // Initialize profile page
 document.addEventListener('DOMContentLoaded', async function() {
@@ -159,7 +160,7 @@ async function loadUserProfile(user) {
     if (emailElement) emailElement.textContent = user.email;
 
     const initialAvatarUrl = resolveGoogleAvatarUrl(user) ||
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(initialName)}&background=d4af37&color=fff`;
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(initialName)}&background=d4af37&color=fff&size=${PROFILE_AVATAR_SIZE}`;
     if (avatarContainer) {
         renderAvatarWithFallback(avatarContainer, initialAvatarUrl, initialName);
     }
@@ -197,7 +198,7 @@ async function loadUserProfile(user) {
         if (nameElement) nameElement.textContent = profileData.username;
         if (avatarContainer && !resolveGoogleAvatarUrl(user)) {
              // Only update avatar if not using a Google provided one
-             const updatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.username)}&background=d4af37&color=fff`;
+               const updatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.username)}&background=d4af37&color=fff&size=${PROFILE_AVATAR_SIZE}`;
              renderAvatarWithFallback(avatarContainer, updatedAvatar, profileData.username);
         }
     }
@@ -265,8 +266,30 @@ function resolveGoogleAvatarUrl(user) {
 
     const firstValid = candidates.find(url => typeof url === 'string' && url.trim().length > 0);
     if (!firstValid) return '';
-    
-    return String(firstValid).trim();
+
+    return toHighResAvatarUrl(String(firstValid).trim(), PROFILE_AVATAR_SIZE);
+}
+
+function toHighResAvatarUrl(url, size) {
+    const cleanUrl = String(url || '').trim();
+    if (!cleanUrl) return '';
+
+    try {
+        const parsed = new URL(cleanUrl);
+        const host = parsed.hostname.toLowerCase();
+        const isGoogleAvatar = host.includes('googleusercontent.com') || host.includes('ggpht.com');
+
+        if (isGoogleAvatar) {
+            const highResPath = parsed.pathname.replace(/=s\d+(-c)?$/, `=s${size}-c`);
+            parsed.pathname = highResPath;
+            parsed.searchParams.set('sz', String(size));
+            return parsed.toString();
+        }
+
+        return cleanUrl;
+    } catch (error) {
+        return cleanUrl.replace(/=s\d+(-c)?$/, `=s${size}-c`);
+    }
 }
 
 async function loadUserOrders(userId) {
