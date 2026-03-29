@@ -1,8 +1,6 @@
 // common/auth-state.js or similar
 import { supabase } from './supabase.js';
 
-const ADMIN_ONLY_EMAIL = 'admin@local.test';
-
 function markAuthUiReady() {
     if (document.body) {
         document.body.classList.add('auth-ui-ready');
@@ -200,18 +198,34 @@ async function updateAuthUI() {
             sessionStorage.removeItem('_supabase_session_cache');
         }
 
-        // Handle admin-only email redirect (no DOM changes)
-        if (freshSession && String(freshSession.user?.email || '').toLowerCase() === ADMIN_ONLY_EMAIL && !currentPath.includes('admin-login.html')) {
-            await supabase.auth.signOut();
-            const isPagesDir = currentPath.includes('/pages/');
-            window.location.href = isPagesDir ? 'admin-login.html' : 'pages/admin-login.html';
-            return;
-        }
-        
         // Check if we are on a login page
         const isLoginPage = currentPath.includes('user-login.html') || currentPath.includes('admin-login.html');
 
-        // Validate profile completeness (no DOM changes)
+        if (freshSession) {
+            const postLogin = sessionStorage.getItem('post_login_redirect');
+            if (postLogin) {
+                sessionStorage.removeItem('post_login_redirect');
+                const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', freshSession.user.id).single();
+                const isAdmin = profile?.is_admin === true;
+                const isPagesDir = currentPath.includes('/pages/');
+
+                if (postLogin === 'admin') {
+                    if (isAdmin) {
+                        window.location.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
+                    } else {
+                        await supabase.auth.signOut();
+                        alert('Access Denied: You do not have administrator privileges.');
+                        window.location.href = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
+                    }
+                    return;
+                } else if (postLogin === 'user' && isAdmin) {
+                    window.location.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
+                    return;
+                }
+            }
+        }
+
+        // Validate admin access and profile completeness (no DOM changes)
         if (freshSession && !isLoginPage) {
             try {
                 const { data: profile, error } = await supabase
@@ -221,6 +235,16 @@ async function updateAuthUI() {
                     .single();
                 
                 const isAdmin = profile?.is_admin === true;
+
+                if (isAdmin) {
+                    const profileLink = document.querySelector('a[href*="profile.html"], a[href*="user-login.html"]');
+                    if (profileLink) {
+                        const isPagesDir = currentPath.includes('/pages/');
+                        profileLink.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
+                        const navText = profileLink.querySelector('.nav-text');
+                        if (navText) navText.textContent = 'Dashboard';
+                    }
+                }
 
                 // For admins, do not enforce phone/address completeness.
                 // For customers, keep the full profile requirement.

@@ -42,11 +42,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle Google Login
     if (googleBtn) {
         googleBtn.addEventListener('click', async () => {
+            sessionStorage.setItem('post_login_redirect', 'admin');
             try {
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: window.location.href, // Redirect back to this page to handle admin check
+                        redirectTo: window.location.origin, // Fallback safely to origin; global auth state will route
                     },
                 });
                 if (error) throw error;
