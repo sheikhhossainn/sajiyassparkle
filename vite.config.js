@@ -15,6 +15,7 @@ const pages = readdirSync(pagesDir)
 
 export default defineConfig({
   root: 'frontend',
+  envDir: '../',
   server: {
     port: 3000,
     open: true,
