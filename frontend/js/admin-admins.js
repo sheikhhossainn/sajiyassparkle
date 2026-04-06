@@ -1,9 +1,30 @@
 import { supabase } from './supabase.js';
 
+const ADMIN_SESSION_KEY = '_admin_session';
+
+function getAdminSession() {
+    try {
+        const cached = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearAdminSession() {
+    try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch (error) {
+        console.warn('Failed to clear admin session:', error);
+    }
+}
+
 let currentUser = null;
 let currentProfile = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    setupLogout();
+    setupLogout();
     // 1. Auth Check
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -182,3 +203,16 @@ window.removeAdmin = async function(id) {
         alert('Failed to remove admin.');
     }
 };
+function setupLogout() {
+    const logoutLink = document.querySelector('.sidebar-logout');
+    if (!logoutLink) return;
+
+    logoutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearAdminSession();
+        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
+        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+        if (sbKey) localStorage.removeItem(sbKey);
+        window.location.href = 'admin-login.html';
+    });
+}

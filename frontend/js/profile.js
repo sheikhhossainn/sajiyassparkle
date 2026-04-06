@@ -3,6 +3,16 @@ import { supabase } from './supabase.js';
 let currentProfileData = {};
 const PROFILE_AVATAR_SIZE = 320;
 
+function clearAuthSessionCache() {
+    try {
+        sessionStorage.removeItem('_supabase_session_cache');
+        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
+    } catch (error) {
+        console.warn('Failed to clear auth cache:', error);
+    }
+}
+
+
 // Initialize profile page
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Profile page loaded');
@@ -108,6 +118,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
+                clearAuthSessionCache();
                 // Redirect to home page
                 window.location.href = '../index.html';
             } catch (error) {

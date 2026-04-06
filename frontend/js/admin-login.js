@@ -1,6 +1,25 @@
 import { supabase } from './supabase.js';
 
+const ADMIN_SESSION_KEY = '_admin_session';
+
+function clearAdminSession() {
+    try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch (error) {
+        console.warn('Failed to clear admin session:', error);
+    }
+}
+
+function storeAdminSession(session) {
+    try {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+    } catch (error) {
+        console.warn('Failed to store admin session:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    clearAdminSession();
     // Show admin content by default
     const accessDenied = document.getElementById('accessDenied');
     const adminContent = document.getElementById('adminContent');
@@ -15,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         emailForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
+            const password = document.getElementById('adminPassword').value;    
             const errorDiv = document.getElementById('loginError');
             if (errorDiv) errorDiv.textContent = '';
 
@@ -28,8 +47,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) {
                     throw error;
                 } else {
-                    // Success! Check session again to redirect
-                     await checkSession();
+                    // Success! Validate admin role and store admin session
+                    await checkSession(data?.session || null);
                 }
 
             } catch (err) {
@@ -42,12 +61,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle Google Login
     if (googleBtn) {
         googleBtn.addEventListener('click', async () => {
-            sessionStorage.setItem('post_login_redirect', 'admin');
+            // post_login_redirect completely absent in admin flows.
             try {
+                const redirectTo = `${window.location.origin}/pages/admin-login.html`;
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: window.location.origin, // Fallback safely to origin; global auth state will route
+                        redirectTo,
                     },
                 });
                 if (error) throw error;
@@ -57,20 +77,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-
-    // Initialize session check
-    await checkSession();
+    // Initialize session check only for OAuth callbacks
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasOAuthCode = urlParams.has('code');
+    const hasOAuthToken = window.location.hash.includes('access_token');
+    if (hasOAuthCode || hasOAuthToken) {
+        await checkSession();
+    }
 });
 
-async function checkSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    
+async function checkSession(sessionOverride = null) {
+    const resolvedSession = sessionOverride || (await supabase.auth.getSession()).data?.session;
+
     // If no session, we stay on the login page
-    if (!session) return; 
+    if (!resolvedSession) return;
 
     // If session exists, user is logged in. Check admin status.
-    const user = session.user;
-    
+    const user = resolvedSession.user;
+
     try {
         const { data: profile, error } = await supabase
             .from('profiles')
@@ -80,25 +104,29 @@ async function checkSession() {
 
         // If no profile or error, user is not authorized as admin
         if (error || !profile || !profile.is_admin) {
-             console.error('Profile fetch error or not admin:', error);
-             showError('Access Denied: You do not have administrator privileges.');
-             await supabase.auth.signOut();
-             setTimeout(() => {
-                 window.location.href = 'user-login.html'; 
-            }, 3000);
-             return;
+            console.error('Profile fetch error or not admin:', error);
+            showError('Access Denied: You do not have administrator privileges.');
+            try {
+                await supabase.auth.signOut();
+            } catch (signOutError) {
+                console.warn('Admin login signOut error:', signOutError);
+            }
+            clearAdminSession();
+            return;
         }
 
-
-        // Removed profile completion check. Admins don't need to fill details.
-        
         // Admin is good to go
+        storeAdminSession(resolvedSession);
+        
+        // Final explicit requested cleanup before directing to dashboard
+        sessionStorage.removeItem('post_login_redirect');
+        
         window.location.href = 'admin-dashboard.html';
 
     } catch (error) {
         console.error('Error checking admin status:', error);
         showError('Error verifying admin privileges: ' + error.message);
-        await supabase.auth.signOut();
+        clearAdminSession();
     }
 }
 

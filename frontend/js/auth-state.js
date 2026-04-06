@@ -1,6 +1,9 @@
 // common/auth-state.js or similar
 import { supabase } from './supabase.js';
 
+const SESSION_CACHE_KEY = '_supabase_session_cache';
+const FORCE_SIGNED_OUT_KEY = '_supabase_force_signed_out';
+
 function markAuthUiReady() {
     if (document.body) {
         document.body.classList.add('auth-ui-ready');
@@ -23,10 +26,32 @@ function handleAuthErrors() {
     }
 }
 
+function setForceSignedOut(value) {
+    try {
+        if (value) {
+            sessionStorage.setItem(FORCE_SIGNED_OUT_KEY, String(Date.now()));
+        } else {
+            sessionStorage.removeItem(FORCE_SIGNED_OUT_KEY);
+        }
+    } catch (e) {
+        console.warn('Failed to update force-signed-out flag:', e);
+    }
+}
+
+function isForceSignedOut() {
+    try {
+        return Boolean(sessionStorage.getItem(FORCE_SIGNED_OUT_KEY));
+    } catch (e) {
+        return false;
+    }
+}
+
 // Store session in sessionStorage to prevent flickering on page navigation
 function getCachedSessionSync() {
     try {
-        const cached = sessionStorage.getItem('_supabase_session_cache');
+        if (isForceSignedOut()) return null;
+
+        const cached = sessionStorage.getItem(SESSION_CACHE_KEY);
         if (cached) {
             return JSON.parse(cached);
         }
@@ -47,7 +72,7 @@ function getCachedSessionSync() {
         const session = fromWrapped || fromDirect;
 
         if (session?.user) {
-            sessionStorage.setItem('_supabase_session_cache', JSON.stringify(session));
+            sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(session));
             return session;
         }
 
@@ -59,7 +84,14 @@ function getCachedSessionSync() {
 
 function setCachedSession(session) {
     try {
-        sessionStorage.setItem('_supabase_session_cache', JSON.stringify(session));
+        if (!session) {
+            sessionStorage.removeItem(SESSION_CACHE_KEY);
+            setForceSignedOut(true);
+            return;
+        }
+
+        setForceSignedOut(false);
+        sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(session));
     } catch (e) {
         console.warn('Failed to cache session:', e);
     }
@@ -81,8 +113,12 @@ function renderAuthUI(session) {
     const isLoggedIn = session !== null;
     const userId = session?.user?.id;
     
-    // Only re-render if state actually changed
-    if (lastRenderedIsLoggedIn === isLoggedIn && lastRenderedUserId === userId) {
+    const authLink = document.querySelector('[data-auth-nav]');
+    const navTextEl = authLink ? authLink.querySelector('.nav-text') : null;
+    const needsLabelFix = isLoggedIn && navTextEl && navTextEl.textContent.trim() !== 'Profile';
+
+    // Only re-render if state actually changed or a stale label is present
+    if (!needsLabelFix && lastRenderedIsLoggedIn === isLoggedIn && lastRenderedUserId === userId) {
         return;
     }
     
@@ -90,7 +126,7 @@ function renderAuthUI(session) {
     lastRenderedUserId = userId;
     
     // Select the login link/button in the navbar
-    const loginLink = document.querySelector('a[href*="user-login.html"]');
+    const loginLink = authLink;
     
     if (!loginLink) return;
 
@@ -181,11 +217,11 @@ async function updateAuthUI() {
     try {
         handleAuthErrors();
 
+        const currentPath = window.location.pathname.toLowerCase();
+
         // Get cached session and render immediately - no async calls
         const session = getCachedSessionSync();
         renderAuthUI(session);
-
-        const currentPath = window.location.pathname.toLowerCase();
 
         // Do all validations asynchronously without touching the DOM
         // Verify session matches cached version
@@ -195,35 +231,11 @@ async function updateAuthUI() {
         if (freshSession) {
             setCachedSession(freshSession);
         } else {
-            sessionStorage.removeItem('_supabase_session_cache');
+            setCachedSession(null);
         }
 
         // Check if we are on a login page
         const isLoginPage = currentPath.includes('user-login.html') || currentPath.includes('admin-login.html');
-
-        if (freshSession) {
-            const postLogin = sessionStorage.getItem('post_login_redirect');
-            if (postLogin) {
-                sessionStorage.removeItem('post_login_redirect');
-                const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', freshSession.user.id).single();
-                const isAdmin = profile?.is_admin === true;
-                const isPagesDir = currentPath.includes('/pages/');
-
-                if (postLogin === 'admin') {
-                    if (isAdmin) {
-                        window.location.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
-                    } else {
-                        await supabase.auth.signOut();
-                        alert('Access Denied: You do not have administrator privileges.');
-                        window.location.href = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
-                    }
-                    return;
-                } else if (postLogin === 'user' && isAdmin) {
-                    window.location.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
-                    return;
-                }
-            }
-        }
 
         // Validate admin access and profile completeness (no DOM changes)
         if (freshSession && !isLoginPage) {
@@ -234,28 +246,11 @@ async function updateAuthUI() {
                     .eq('id', freshSession.user.id)
                     .single();
                 
-                const isAdmin = profile?.is_admin === true;
-
-                if (isAdmin) {
-                    const profileLink = document.querySelector('a[href*="profile.html"], a[href*="user-login.html"]');
-                    if (profileLink) {
-                        const isPagesDir = currentPath.includes('/pages/');
-                        profileLink.href = isPagesDir ? 'admin-dashboard.html' : 'pages/admin-dashboard.html';
-                        const navText = profileLink.querySelector('.nav-text');
-                        if (navText) navText.textContent = 'Dashboard';
-                    }
-                }
-
-                // For admins, do not enforce phone/address completeness.
-                // For customers, keep the full profile requirement.
-                if (error || !profile || !profile.username || (!isAdmin && (!profile.phone || !profile.address))) {
-                    console.warn('Incomplete profile. Redirecting to login.');
-                    // Determine target URL based on current depth
+                // Only enforce profile completeness for non-admins (storefront)
+                if (error || !profile || !profile.username || (!profile.is_admin && (!profile.phone || !profile.address))) {
                     const isPagesDir = currentPath.includes('/pages/');
-                    const target = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
-                    
-                    window.location.href = target;
-                    return; 
+                    window.location.href = isPagesDir ? 'user-login.html' : 'pages/user-login.html';
+                    return;
                 }
             } catch (err) {
                 console.error('Profile check error:', err);
@@ -274,13 +269,22 @@ updateAuthUI();
 
 // Also run when auth state changes (e.g. login/logout in another tab)
 supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'INITIAL_SESSION') {
+        // Avoid flicker: bootstrap/cached render already handled initial UI.
+        return;
+    }
+
     const cachedSession = getCachedSessionSync();
     const sessionId = session?.user?.id;
     const cachedId = cachedSession?.user?.id;
     
     // Only update if the actual login state changed (not on every event)
     if ((session === null) !== (cachedSession === null) || sessionId !== cachedId) {
-        setCachedSession(session);
+        if (session) {
+            setCachedSession(session);
+        } else {
+            setCachedSession(null);
+        }
         renderAuthUI(session);
     }
 });
