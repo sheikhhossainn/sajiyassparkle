@@ -1,10 +1,22 @@
-let supabaseClient = null;
+import { supabase } from './supabase.js';
 
-async function getSupabase() {
-    if (supabaseClient) return supabaseClient;
-    const { supabase } = await import('./supabase.js');
-    supabaseClient = supabase;
-    return supabaseClient;
+const ADMIN_SESSION_KEY = '_admin_session';
+
+function getAdminSession() {
+    try {
+        const cached = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearAdminSession() {
+    try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch (error) {
+        console.warn('Failed to clear admin session:', error);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -127,7 +139,7 @@ function setupModalHandlers() {
 }
 
 async function loadMessages() {
-    const supabase = await getSupabase();
+    
     const { data, error } = await supabase
         .from('messages')
         .select('id, customer_name, customer_email, message_type, message_body, status, admin_reply, replied_at, created_at')
@@ -196,7 +208,7 @@ async function openMessageModal(messageId) {
     if (!message) return;
 
     if (normalizeStatus(message.status) === 'new') {
-        const supabase = await getSupabase();
+        
         const { error } = await supabase
             .from('messages')
             .update({ status: 'read' })
@@ -244,7 +256,7 @@ async function handleMessageSave(event) {
 
     if (!state.activeMessage) return;
 
-    const supabase = await getSupabase();
+    
 
     const saveButton = document.getElementById('saveMessageBtn');
     const statusSelect = document.getElementById('modalStatus');
@@ -308,7 +320,7 @@ async function handleMessageSave(event) {
 async function handleArchiveMessage() {
     if (!state.activeMessage) return;
 
-    const supabase = await getSupabase();
+    
     const archiveBtn = document.getElementById('archiveMessageBtn');
 
     if (archiveBtn) {
