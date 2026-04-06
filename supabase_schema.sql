@@ -240,8 +240,25 @@ CREATE POLICY "Users can create orders" ON "public"."orders" FOR INSERT WITH CHE
 CREATE POLICY "Users can delete from their own wishlist" ON "public"."wishlist" FOR DELETE USING (("auth"."uid"() = "user_id"));
 CREATE POLICY "Users can insert into their own wishlist" ON "public"."wishlist" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
 CREATE POLICY "Users can insert own order items" ON "public"."order_items" FOR INSERT WITH CHECK ((EXISTS (SELECT 1 FROM "public"."orders" WHERE (("orders"."id" = "order_items"."order_id") AND ("orders"."user_id" = "auth"."uid"())))));
-CREATE POLICY "Users can insert their own profile" ON "public"."profiles" FOR INSERT WITH CHECK (("auth"."uid"() = "id"));
-CREATE POLICY "Users can update own profile" ON "public"."profiles" FOR UPDATE USING (("auth"."uid"() = "id"));
+DROP POLICY IF EXISTS "Users can insert their own profile" ON "public"."profiles";
+DROP POLICY IF EXISTS "Users can update own profile" ON "public"."profiles";
+
+CREATE POLICY "Users can insert their own profile" ON "public"."profiles"
+  FOR INSERT TO "authenticated"
+  WITH CHECK (
+    ("auth"."uid"() = "id")
+    AND ("is_admin" = false)
+    AND ("is_super_admin" = false)
+  );
+
+CREATE POLICY "Users can update own profile" ON "public"."profiles"
+  FOR UPDATE TO "authenticated"
+  USING ("auth"."uid"() = "id")
+  WITH CHECK (
+    ("auth"."uid"() = "id")
+    AND ("is_admin" = false)
+    AND ("is_super_admin" = false)
+  );
 CREATE POLICY "Users can view their own order items" ON "public"."order_items" FOR SELECT USING ((EXISTS (SELECT 1 FROM "public"."orders" WHERE (("orders"."id" = "order_items"."order_id") AND ("orders"."user_id" = "auth"."uid"())))));
 CREATE POLICY "Users can view their own orders" ON "public"."orders" FOR SELECT USING (("auth"."uid"() = "user_id"));
 CREATE POLICY "Users can view their own wishlist" ON "public"."wishlist" FOR SELECT USING (("auth"."uid"() = "user_id"));
@@ -300,8 +317,10 @@ GRANT ALL ON TABLE "public"."products" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "service_role";
-GRANT ALL ON TABLE "public"."profiles" TO "anon";
-GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
+REVOKE ALL ON TABLE "public"."profiles" FROM "anon";
+REVOKE ALL ON TABLE "public"."profiles" FROM "authenticated";
+GRANT SELECT, INSERT ON TABLE "public"."profiles" TO "authenticated";
+GRANT SELECT ON TABLE "public"."profiles" TO "anon";
 GRANT ALL ON TABLE "public"."profiles" TO "service_role";
 GRANT ALL ON TABLE "public"."wishlist" TO "anon";
 GRANT ALL ON TABLE "public"."wishlist" TO "authenticated";
@@ -316,3 +335,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUN
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "postgres";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
+
+REVOKE UPDATE ON TABLE "public"."profiles" FROM "authenticated";
+GRANT UPDATE ("username", "address", "phone") ON TABLE "public"."profiles" TO "authenticated";
