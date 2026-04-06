@@ -1,5 +1,24 @@
 import { supabase } from './supabase.js';
 
+const ADMIN_SESSION_KEY = '_admin_session';
+
+function getAdminSession() {
+    try {
+        const cached = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearAdminSession() {
+    try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch (error) {
+        console.warn('Failed to clear admin session:', error);
+    }
+}
+
 const ORDER_STATUS_FLOW = [
     'pending_verification',
     'payment_verified',
@@ -50,42 +69,52 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', async (e) => {
+    logoutLink.addEventListener('click', (e) => {
         e.preventDefault();
-
-        try {
-            await supabase.auth.signOut();
-        } catch (error) {
-            console.warn('Admin logout signOut error:', error);
-        } finally {
-            window.location.href = '../index.html';
-        }
+        clearAdminSession();
+        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
+        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+        if (sbKey) localStorage.removeItem(sbKey);
+        window.location.href = 'admin-login.html';
     });
 }
 
 async function ensureAdminAccess() {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData?.session?.user;
+    const adminSession = getAdminSession();
+    const userId = adminSession?.user?.id;
 
-    if (!user) {
+    if (!userId) {
+        clearAdminSession();
         window.location.href = 'admin-login.html';
         return false;
     }
 
-    const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
+    try {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', userId)
+            .single();
 
-    if (error || !profile?.is_admin) {
-        alert('Access denied. Admin account required.');
-        await supabase.auth.signOut();
-        window.location.href = 'admin-login.html';
+        if (error || !profile?.is_admin) {
+            alert('Access denied. Admin account required.');
+            clearAdminSession();
+            window.location.href = 'admin-login.html';
+            return false;
+        }
+
+        setInterval(() => {
+            if (!getAdminSession()) {
+                clearAdminSession();
+                window.location.href = 'admin-login.html';
+            }
+        }, 30000);
+
+        return true;
+    } catch (err) {
+        console.error('Error checking admin access:', err);
         return false;
     }
-
-    return true;
 }
 
 async function loadOrdersPage() {

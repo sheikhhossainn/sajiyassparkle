@@ -16,6 +16,8 @@ function initializeAuth() {
     // Check Auth Status & Profile
     // ============================================
     async function checkAuthStatus() {
+        sessionStorage.removeItem('post_login_redirect');
+        
         // Handle OAuth Redirect Errors
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
@@ -49,22 +51,15 @@ function initializeAuth() {
                     return;
                 }
 
-                const isAdmin = profile?.is_admin === true;
-
-                if (isAdmin) {
-                    console.log("Admin account detected. Redirecting to admin dashboard...");
-                    window.location.href = 'admin-dashboard.html';
-                    return;
-                }
-
                 // Check completeness: username, phone, address
                 const isComplete = profile && 
                                    profile.username && profile.username.trim() !== '' &&
-                                   profile.phone && profile.phone.trim() !== '' &&
-                                   profile.address && profile.address.trim() !== '';
+                                   (profile.is_admin || (profile.phone && profile.phone.trim() !== '' &&
+                                   profile.address && profile.address.trim() !== ''));
 
                 if (isComplete) {
                     console.log("Profile is complete. Redirecting...");
+                    sessionStorage.removeItem('post_login_redirect');
                     window.location.href = '../index.html';
                 } else {
                     console.log("Profile incomplete. Showing completion form.");
@@ -118,7 +113,6 @@ function initializeAuth() {
     const googleBtn = document.getElementById('googleSignInBtn');
     if (googleBtn) {
         googleBtn.addEventListener('click', async () => {
-             sessionStorage.setItem('post_login_redirect', 'user');
              const redirectUrl = window.location.origin; // Use origin to avoid whitelist issues
 
              const { data, error } = await supabase.auth.signInWithOAuth({
@@ -195,8 +189,10 @@ function initializeAuth() {
                 }
 
                 // Success
+                sessionStorage.removeItem('post_login_redirect');
                 window.location.href = '../index.html';
 
+                
             } catch (err) {
                 console.error("Profile update error details:", err);
                 const msg = err.message || "Unknown error";
