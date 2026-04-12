@@ -51,12 +51,24 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', (e) => {
+    logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
+        try {
+            // Fully sign out the session
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+            console.warn('SignOut error:', err);
+        }
+        
+        // Clear all session data
         clearAdminSession();
-        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
-        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-        if (sbKey) localStorage.removeItem(sbKey);
+        try {
+            sessionStorage.clear();
+        } catch (ex) {
+            console.warn('Failed to clear session:', ex);
+        }
+        
+        // Redirect to admin login
         window.location.href = 'admin-login.html';
     });
 }
@@ -104,7 +116,7 @@ async function loadDashboardData() {
         supabase.from('products').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).neq('is_admin', true),
         supabase.from('orders').select('id, user_id, total_amount, status, created_at').order('created_at', { ascending: false }).limit(20),
-        supabase.from('profiles').select('id, username, email')
+        supabase.from('profiles').select('id, username, deleted_at')
     ]);
 
     if (ordersErr) {
@@ -149,7 +161,7 @@ function renderLatestOrders(orders, profileById) {
 
     tbody.innerHTML = orders.map(order => {
         const profile = profileById.get(order.user_id) || {};
-        const customer = profile.username || profile.email || 'Unknown customer';
+        const customer = profile.username || (profile.deleted_at ? 'Deleted User' : 'Unknown customer');
         const total = Number(order.total_amount || 0).toLocaleString('en-BD', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
         const statusKey = normalizeStatus(order.status);
         const date = order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';

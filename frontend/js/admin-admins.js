@@ -207,12 +207,19 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', (e) => {
+    logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+            console.warn('SignOut error:', err);
+        }
         clearAdminSession();
-        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
-        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-        if (sbKey) localStorage.removeItem(sbKey);
+        try {
+            sessionStorage.clear();
+        } catch (ex) {
+            console.warn('Failed to clear session:', ex);
+        }
         window.location.href = 'admin-login.html';
     });
 }

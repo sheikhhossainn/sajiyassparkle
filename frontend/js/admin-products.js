@@ -101,12 +101,19 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', (e) => {
+    logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+            console.warn('SignOut error:', err);
+        }
         clearAdminSession();
-        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
-        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-        if (sbKey) localStorage.removeItem(sbKey);
+        try {
+            sessionStorage.clear();
+        } catch (ex) {
+            console.warn('Failed to clear session:', ex);
+        }
         window.location.href = 'admin-login.html';
     });
 }
@@ -322,9 +329,11 @@ function renderProductsTable() {
     rows.forEach((product) => {
         const row = document.createElement('tr');
         const imageUrl = product.image_url || 'https://placehold.co/80x80?text=No+Image';
-        const status = product[state.statusColumn] || product.stock_status || product.status || 'Out of Stock';
         const price = Number(product.price || 0).toLocaleString('en-BD', { maximumFractionDigits: 2 });
         const stockQty = Number(product[state.stockColumn] ?? product.stock_quantity ?? product.stock ?? 0);
+        // Status should be synced with stock quantity - if 0, show out_of_stock
+        const computedStatus = stockQty === 0 ? 'out_of_stock' : 'in_stock';
+        const displayStatus = stockQty === 0 ? 'Out of Stock' : 'In Stock';
         const stockClass = stockQty === 0 ? 'stock-low' : stockQty < 5 ? 'stock-medium' : 'stock-high';
         const isFeatured = Boolean(product[state.featuredColumn] ?? product.featured ?? product.is_featured ?? false);
         const isSelected = state.selectedProductIds.has(product.id);
@@ -349,7 +358,7 @@ function renderProductsTable() {
                 <span class="product-stock ${stockClass}">${stockQty}</span>
             </td>
             <td>
-                <span class="status-badge ${status === 'In Stock' ? 'available' : 'out-of-stock'}">${escapeHtml(status)}</span>
+                <span class="status-badge ${computedStatus === 'in_stock' ? 'available' : 'out-of-stock'}">${displayStatus}</span>
             </td>
             <td>
                 <span class="status-badge ${isFeatured ? 'available' : 'out-of-stock'}">${isFeatured ? 'Yes' : 'No'}</span>
@@ -479,7 +488,6 @@ async function handleProductSubmit(event) {
     const productName = document.getElementById('productName')?.value?.trim() || '';
     const category = document.getElementById('productCategory')?.value?.trim() || '';
     const priceValue = document.getElementById('productPrice')?.value || '';
-    const stockStatus = document.getElementById('productStockStatus')?.value || '';
     const stockQty = document.getElementById('productStock')?.value || '';
     const productFeatured = document.getElementById('productFeatured')?.checked || false;
     const description = document.getElementById('productDescription')?.value?.trim() || null;
@@ -503,16 +511,14 @@ async function handleProductSubmit(event) {
         hasError = true;
     }
 
-    if (!stockStatus) {
-        showFieldError('productStockStatus', 'Stock status is required');
-        hasError = true;
-    }
-
     const parsedStockQty = stockQty === '' ? 0 : Number(stockQty);
     if (Number.isNaN(parsedStockQty) || parsedStockQty < 0) {
         showFieldError('productStock', 'Enter a valid stock quantity');
         hasError = true;
     }
+    
+    // Auto-compute stock status based on quantity (0 = out of stock, >0 = in stock)
+    const stockStatus = parsedStockQty === 0 ? 'out_of_stock' : 'in_stock';
 
     const featuredCount = getFeaturedCount(productId || null);
     if (productFeatured && featuredCount >= 4) {

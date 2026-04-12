@@ -3,6 +3,7 @@ import { supabase } from './supabase.js';
 
 const SESSION_CACHE_KEY = '_supabase_session_cache';
 const FORCE_SIGNED_OUT_KEY = '_supabase_force_signed_out';
+const USER_LOGGED_OUT_FOR_UI_KEY = '_user_logged_out_for_ui';
 
 function markAuthUiReady() {
     if (document.body) {
@@ -46,9 +47,21 @@ function isForceSignedOut() {
     }
 }
 
+function isUserLoggedOutForUI() {
+    try {
+        return sessionStorage.getItem(USER_LOGGED_OUT_FOR_UI_KEY) === 'true';
+    } catch (e) {
+        return false;
+    }
+}
+
 // Store session in sessionStorage to prevent flickering on page navigation
 function getCachedSessionSync() {
     try {
+        // If user is logged out for UI purposes on THIS tab, return null
+        // This is tab-specific (sessionStorage), so admin tab stays logged in
+        if (isUserLoggedOutForUI()) return null;
+        
         if (isForceSignedOut()) return null;
 
         const cached = sessionStorage.getItem(SESSION_CACHE_KEY);
