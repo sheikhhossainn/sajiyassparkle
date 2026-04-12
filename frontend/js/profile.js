@@ -145,11 +145,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
-                // Mark this tab as logged out (sessionStorage is tab-specific)
-                sessionStorage.setItem('_user_logged_out_for_ui', 'true');
+                // End the Supabase session (scope: 'local' only affects this tab)
+                const { error } = await supabase.auth.signOut({ scope: 'local' });
+                if (error) {
+                    console.warn('SignOut error:', error);
+                }
                 
-                // Clear the session cache for this tab
-                sessionStorage.removeItem('_supabase_session_cache');
+                // Manually clear the auth token from localStorage
+                const authTokenKey = Object.keys(localStorage).find(
+                    key => key.startsWith('sb-') && key.endsWith('-auth-token')
+                );
+                if (authTokenKey) {
+                    localStorage.removeItem(authTokenKey);
+                }
+                
+                // Clear all sessionStorage
+                try {
+                    sessionStorage.clear();
+                } catch (e) {
+                    console.warn('Failed to clear sessionStorage:', e);
+                }
+                
+                // Mark this tab as logged out (redundant but explicit)
+                sessionStorage.setItem('_user_logged_out_for_ui', 'true');
                 
                 // Redirect to homepage
                 window.location.href = '../index.html';

@@ -236,6 +236,12 @@ async function updateAuthUI() {
         const session = getCachedSessionSync();
         renderAuthUI(session);
 
+        // If user is explicitly logged out for UI, skip session verification
+        if (isUserLoggedOutForUI()) {
+            markAuthUiReady();
+            return;
+        }
+
         // Do all validations asynchronously without touching the DOM
         // Verify session matches cached version
         const { data: { session: freshSession } } = await supabase.auth.getSession();

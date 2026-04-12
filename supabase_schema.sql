@@ -65,7 +65,7 @@ BEGIN
   END IF;
   
   -- Get the email before we delete
-  SELECT email INTO user_email FROM auth.users WHERE id = user_id;
+  SELECT "auth"."users"."email" INTO user_email FROM "auth"."users" WHERE "auth"."users"."id" = user_id;
   
   IF user_email IS NOT NULL THEN
     -- Anonymize profile data (soft delete)
@@ -76,21 +76,21 @@ BEGIN
       phone = NULL,
       address = NULL,
       deleted_at = timezone('utc'::text, now())
-    WHERE id = user_id;
+    WHERE "profiles"."id" = user_id;
     
     -- Delete wishlist items
     DELETE FROM "public"."wishlist" WHERE "wishlist"."user_id" = user_id;
     
     -- Log the deletion for rate limiting
-    INSERT INTO "public"."signup_rate_limit" (email, can_retry_at)
-    VALUES (user_email, timezone('utc'::text, now()) + INTERVAL '15 minutes')
-    ON CONFLICT (email) DO UPDATE SET 
+    INSERT INTO "public"."signup_rate_limit" (email, can_retry_at, deleted_at)
+    VALUES (user_email, timezone('utc'::text, now()) + INTERVAL '15 minutes', timezone('utc'::text, now()))
+    ON CONFLICT ("email") DO UPDATE SET 
       can_retry_at = timezone('utc'::text, now()) + INTERVAL '15 minutes',
       deleted_at = timezone('utc'::text, now());
   END IF;
   
   -- Delete from auth.users - this will cascade to profiles
-  DELETE FROM auth.users WHERE id = user_id;
+  DELETE FROM "auth"."users" WHERE "auth"."users"."id" = user_id;
   
   RETURN json_build_object('success', true, 'message', 'Account deleted successfully');
 EXCEPTION WHEN OTHERS THEN
