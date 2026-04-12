@@ -90,10 +90,15 @@ async function loadCartFromSupabase(userId) {
 
         cart = (data || []).map(row => {
             const p = row.products || {};
+            // Use price_at_add if available (previously saved price), otherwise compute price
+            const price = row.price_at_add && Number(row.price_at_add) > 0 
+                ? Number(row.price_at_add)
+                : getComputedPrice(p);
+            
             return {
                 id: Number(row.product_id),
                 name: p.name,
-                price: Number(p.price ?? row.price_at_add ?? 0),
+                price: price,
                 image_url: p.image_url || '',
                 category: p.category || '',
                 stock_status: p.stock_status || 'in_stock',
@@ -120,11 +125,12 @@ async function upsertCartItem(userId, product, quantity) {
         return;
     }
 
+    const computedPrice = getComputedPrice(product);
     await supabase.from('cart_items').upsert({
         user_id: userId,
         product_id: product.id,
         quantity,
-        price_at_add: Number(product.price || 0)
+        price_at_add: computedPrice
     });
 }
 
@@ -197,6 +203,10 @@ function getDeterministicCategoryPrice(product) {
 
     const stepIndex = Math.abs(hash) % steps;
     return start + (stepIndex * 5);
+}
+
+function getComputedPrice(product) {
+    return getDeterministicCategoryPrice(product);
 }
 
 function applyCategoryPriceMapping(products) {

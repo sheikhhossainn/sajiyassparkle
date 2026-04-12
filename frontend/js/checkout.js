@@ -7,6 +7,71 @@ let cartItems = [];
 let checkoutUserId = null;
 const cartSyncTimers = new Map();
 
+// Price computation functions (mirror from collections.js)
+function normalizeCategory(rawCategory) {
+    const category = String(rawCategory || '').toLowerCase().trim();
+    if (category.includes('ring')) return 'rings';
+    if (category.includes('necklace')) return 'necklaces';
+    if (category.includes('bracelet')) return 'bracelets';
+    if (category.includes('earring')) return 'earrings';
+    if (category.includes('set')) return 'setitems';
+    return category;
+}
+
+function getPriceRangeForCategory(product) {
+    const category = normalizeCategory(product?.category);
+    const productName = String(product?.name || '').toLowerCase();
+
+    if (category === 'setitems' && (productName.includes('ring') || productName.includes('bracelet'))) {
+        return [300, 350];
+    }
+    if (category === 'rings') return [150, 220];
+    if (category === 'necklaces') return [200, 280];
+    if (category === 'bracelets') return [150, 220];
+    if (category === 'earrings') return [150, 220];
+    if (category === 'setitems') return [200, 500];
+    return null;
+}
+
+function getFixedPriceOverride(product) {
+    const name = String(product?.name || '').toLowerCase().trim();
+    if (name === 'nechlace+earring+ring 1' || name === 'necklace+earring+ring 1') return 500;
+    if (name === 'necklace+bracelet+ring') return 400;
+    if (name === 'necklace+earring 1') return 420;
+    if (name === 'necklace+earring+bracelet') return 450;
+    return null;
+}
+
+function getDeterministicCategoryPrice(product) {
+    const fixedPrice = getFixedPriceOverride(product);
+    if (fixedPrice !== null) return fixedPrice;
+
+    const range = getPriceRangeForCategory(product);
+    if (!range) return Number(product?.price || 0);
+
+    const [min, max] = range;
+    const start = Math.ceil(min / 5) * 5;
+    const end = Math.floor(max / 5) * 5;
+    if (start > end) return Number(product?.price || 0);
+
+    const steps = Math.floor((end - start) / 5) + 1;
+    const seed = `${product?.id ?? ''}-${product?.name ?? ''}-${product?.category ?? ''}`;
+    let hash = 0;
+
+    for (let i = 0; i < seed.length; i += 1) {
+        hash = ((hash * 31) + seed.charCodeAt(i)) | 0;
+    }
+
+    const stepIndex = Math.abs(hash) % steps;
+    return start + (stepIndex * 5);
+}
+
+function getComputedPrice(product) {
+    const price = Number(product?.price);
+    if (Number.isFinite(price) && price > 0 && price !== 99) return price;
+    return getDeterministicCategoryPrice(product);
+}
+
 async function loadCartFromSupabase(userId) {
     try {
         const { data, error } = await supabase
@@ -18,10 +83,15 @@ async function loadCartFromSupabase(userId) {
 
         return (data || []).map(row => {
             const p = row.products || {};
+            // Use price_at_add if available (previously saved price), otherwise compute price
+            const price = row.price_at_add && Number(row.price_at_add) > 0 
+                ? Number(row.price_at_add)
+                : getComputedPrice(p);
+            
             return {
                 id: Number(row.product_id),
                 name: p.name,
-                price: Number(p.price ?? row.price_at_add ?? 0),
+                price: price,
                 image_url: p.image_url || '',
                 category: p.category || '',
                 stock_status: p.stock_status || 'in_stock',
