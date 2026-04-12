@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupModalHandlers();
     await loadMessages();
+    setupRealtimeMessagesSubscription();
 });
 
 const state = {
@@ -46,12 +47,19 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', (e) => {
+    logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+            console.warn('SignOut error:', err);
+        }
         clearAdminSession();
-        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
-        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-        if (sbKey) localStorage.removeItem(sbKey);
+        try {
+            sessionStorage.clear();
+        } catch (ex) {
+            console.warn('Failed to clear session:', ex);
+        }
         window.location.href = 'admin-login.html';
     });
 }
@@ -154,6 +162,32 @@ async function loadMessages() {
     state.messages = data || [];
     renderMessagesTable(state.messages);
     updateUnreadBadge(state.messages);
+}
+
+function setupRealtimeMessagesSubscription() {
+    // Listen for message changes and auto-refresh
+    const subscription = supabase
+        .channel('messages')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'messages' },
+            (payload) => {
+                console.log('Message update received:', payload);
+                loadMessages();
+            }
+        )
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log('Real-time messages subscription active');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.warn('Real-time subscription error, will retry on page focus');
+            }
+        });
+
+    // Refresh when page comes back to focus
+    window.addEventListener('focus', () => {
+        loadMessages();
+    });
 }
 
 function renderMessagesTable(messages) {

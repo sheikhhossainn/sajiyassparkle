@@ -106,11 +106,6 @@ async function checkSession(sessionOverride = null) {
         if (error || !profile || !profile.is_admin) {
             console.error('Profile fetch error or not admin:', error);
             showError('Access Denied: You do not have administrator privileges.');
-            try {
-                await supabase.auth.signOut();
-            } catch (signOutError) {
-                console.warn('Admin login signOut error:', signOutError);
-            }
             clearAdminSession();
             return;
         }

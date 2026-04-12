@@ -81,10 +81,39 @@ document.addEventListener('DOMContentLoaded', async function() {
             submitBtn.textContent = 'Saving...';
             submitBtn.disabled = true;
 
+            const username = document.getElementById('edit-full-name').value.trim();
+            let phone = document.getElementById('edit-phone').value.trim();
+            const address = document.getElementById('edit-address').value.trim();
+            
+            // Remove spaces, dashes, and other common separators from phone
+            const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+            
+            // Validation
+            if (username.length < 2) {
+                alert('Name must be at least 2 characters');
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            if (cleanPhone.length !== 11 || !/^01\d{9}$/.test(cleanPhone)) {
+                alert('Please enter a valid Bangladeshi phone number (11 digits, starting with 01)');
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            if (address.length < 5) {
+                alert('Please enter a valid address');
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                return;
+            }
+
             const updates = {
-                username: document.getElementById('edit-full-name').value,
-                phone: document.getElementById('edit-phone').value,
-                address: document.getElementById('edit-address').value
+                username: username,
+                phone: cleanPhone,
+                address: address
             };
 
             try {
@@ -116,10 +145,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                clearAuthSessionCache();
-                // Redirect to home page
+                // Mark this tab as logged out (sessionStorage is tab-specific)
+                sessionStorage.setItem('_user_logged_out_for_ui', 'true');
+                
+                // Clear the session cache for this tab
+                sessionStorage.removeItem('_supabase_session_cache');
+                
+                // Redirect to homepage
                 window.location.href = '../index.html';
             } catch (error) {
                 console.error('Error logging out:', error);
@@ -132,28 +164,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     const deleteBtn = document.querySelector('.profile-delete-btn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently remove your profile and order history.')) {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
                 try {
-                    // We need a specific RPC function to delete the user from auth.users
-                    // If that function doesn't exist, we can only delete the profile data (soft delete)
-                    
-                    // Attempt to call the SQL function we will create
-                    const { error } = await supabase.rpc('delete_user_account');
+                    console.log('Attempting to delete account...');
+                    const { data, error } = await supabase.rpc('delete_user_account');
                     
                     if (error) {
-                        console.error('Error deleting account:', error);
-                        // Fallback: If RPC fails (e.g. not created yet), just sign out and show message
-                        // ideally we would delete from 'profiles' table manually if RPC fails, 
-                        // but RLS might block it or cascade might fail if not set up.
-                        alert('Could not delete account details. Please contact support.');
-                    } else {
+                        console.error('RPC Error deleting account:', error);
+                        alert(`Error deleting account: ${error.message}`);
+                    } else if (data && data.success) {
+                        console.log('Account deletion successful:', data);
                         await supabase.auth.signOut();
                         alert('Your account has been successfully deleted.');
                         window.location.href = '../index.html';
+                    } else {
+                        console.error('Account deletion failed:', data);
+                        alert(`Error: ${data?.message || 'Failed to delete account'}`);
                     }
                 } catch (err) {
-                    console.error('Unexpected error:', err);
-                    alert('An unexpected error occurred.');
+                    console.error('Unexpected error deleting account:', err);
+                    alert(`Unexpected error: ${err.message}`);
                 }
             }
         });

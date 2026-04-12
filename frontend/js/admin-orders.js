@@ -69,12 +69,19 @@ function setupLogout() {
     const logoutLink = document.querySelector('.sidebar-logout');
     if (!logoutLink) return;
 
-    logoutLink.addEventListener('click', (e) => {
+    logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+            console.warn('SignOut error:', err);
+        }
         clearAdminSession();
-        sessionStorage.setItem('_supabase_force_signed_out', String(Date.now()));
-        const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-        if (sbKey) localStorage.removeItem(sbKey);
+        try {
+            sessionStorage.clear();
+        } catch (ex) {
+            console.warn('Failed to clear session:', ex);
+        }
         window.location.href = 'admin-login.html';
     });
 }
@@ -118,6 +125,11 @@ async function ensureAdminAccess() {
 }
 
 async function loadOrdersPage() {
+    await refreshOrders();
+    setupRealtimeOrdersSubscription();
+}
+
+async function refreshOrders() {
     state.orders = await fetchOrders();
     state.profileById = await fetchProfilesMap(state.orders.map(o => o.user_id).filter(Boolean));
     state.itemsByOrderId = await fetchOrderItemsMap(state.orders.map(o => o.id));
@@ -126,25 +138,45 @@ async function loadOrdersPage() {
     renderOrderCards(state.orders, state.profileById, state.itemsByOrderId);
 }
 
+function setupRealtimeOrdersSubscription() {
+    // Listen for order changes and auto-refresh
+    const subscription = supabase
+        .channel('orders')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'orders' },
+            (payload) => {
+                console.log('Order update received:', payload);
+                refreshOrders();
+            }
+        )
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log('Real-time orders subscription active');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.warn('Real-time subscription error, will retry on page focus');
+            }
+        });
+
+    // Refresh when page comes back to focus
+    window.addEventListener('focus', () => {
+        refreshOrders();
+    });
+}
+
 async function fetchOrders() {
-    const withAddress = await supabase
+    const { data, error } = await supabase
         .from('orders')
         .select('id, user_id, total_amount, status, order_status, created_at, delivery_address, shipping_address, address, payment_method, transaction_id, sender_number')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit to prevent loading too much data
 
-    if (!withAddress.error) return withAddress.data || [];
-
-    const fallback = await supabase
-        .from('orders')
-        .select('id, user_id, total_amount, status, created_at, payment_method, transaction_id, sender_number')
-        .order('created_at', { ascending: false });
-
-    if (fallback.error) {
-        console.error('Failed to load orders:', fallback.error.message);
+    if (error) {
+        console.error('Failed to load orders:', error.message);
         return [];
     }
 
-    return fallback.data || [];
+    return data || [];
 }
 
 async function fetchProfilesMap(userIds) {

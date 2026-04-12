@@ -37,6 +37,22 @@ function initializeAuth() {
         if (session) {
             console.log("User session found:", session.user.id);
 
+            // Check rate limiting for recently deleted accounts
+            try {
+                const { data: rateLimitCheck, error: rateLimitError } = await supabase
+                    .rpc('check_signup_rate_limit', { user_email: session.user.email });
+                
+                if (rateLimitError) {
+                    console.warn('Rate limit check error:', rateLimitError);
+                } else if (rateLimitCheck && !rateLimitCheck.allowed) {
+                    showErrorAlert(rateLimitCheck.message);
+                    await supabase.auth.signOut();
+                    return;
+                }
+            } catch (err) {
+                console.warn('Unexpected rate limit check error:', err);
+            }
+
             // Check if profile exists and has required fields
             try {
                 const { data: profile, error } = await supabase
@@ -45,9 +61,16 @@ function initializeAuth() {
                     .eq('id', session.user.id)
                     .single();
 
-                if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+                if (error) {
                     console.error("Profile fetch error:", error);
-                    showErrorAlert("Error checking profile status.");
+                    if (error.code === 'PGRST116') {
+                        // Profile not found - this is normal for new users, show completion form
+                        console.log("Profile not found - showing completion form");
+                        showProfileCompletionForm(session.user);
+                    } else {
+                        // Other errors - show detailed error
+                        alert(`Error checking profile: ${error.message}`);
+                    }
                     return;
                 }
 
@@ -137,8 +160,11 @@ function initializeAuth() {
             e.preventDefault();
             
             const username = document.getElementById('profileName').value.trim();
-            const phone = document.getElementById('profilePhone').value.trim();
+            let phone = document.getElementById('profilePhone').value.trim();
             const address = document.getElementById('profileAddress').value.trim();
+            
+            // Remove spaces, dashes, and other common separators from phone
+            const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
             
             // Validation
             if (username.length < 2) {
@@ -148,8 +174,8 @@ function initializeAuth() {
                 clearFieldError('profileName', 'profileNameError');
             }
 
-            if (phone.length < 10) { // Basic length check check
-                showFieldError('profilePhone', 'profilePhoneError', 'Please enter a valid phone number');
+            if (cleanPhone.length !== 11 || !/^01\d{9}$/.test(cleanPhone)) {
+                showFieldError('profilePhone', 'profilePhoneError', 'Please enter a valid Bangladeshi phone number (11 digits, starting with 01)');
                 return;
             } else {
                 clearFieldError('profilePhone', 'profilePhoneError');
@@ -171,17 +197,17 @@ function initializeAuth() {
                 }
 
                 const updates = {
-                    id: session.user.id,
-                    email: session.user.email,
                     username: username,
-                    phone: phone,
+                    phone: cleanPhone,
                     address: address
-                    // updated_at removed as it doesn't exist in the table
                 };
 
                 console.log("Attempting profile update:", updates);
 
-                const { error } = await supabase.from('profiles').upsert(updates).select();
+                const { error } = await supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', session.user.id);
 
                 if (error) {
                     console.error("Supabase Upsert Error:", error);
