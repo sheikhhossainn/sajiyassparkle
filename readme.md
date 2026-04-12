@@ -46,6 +46,81 @@ npm run dev
 
 This will launch the application at `http://localhost:3000` (or another port if 3000 is busy).
 
+### Running Unit Tests
+
+The project uses **Vitest** for unit testing. Follow these steps to run tests:
+
+#### **Install Test Dependencies**
+
+The testing dependencies are already in `package.json`. If you haven't installed them yet:
+
+```bash
+npm install
+```
+
+#### **Run All Tests**
+
+To run the complete test suite:
+
+```bash
+npm test
+```
+
+#### **Run Tests in Watch Mode**
+
+To run tests and automatically re-run them when files change:
+
+```bash
+npm test -- --watch
+```
+
+#### **Run Tests with UI**
+
+To see test results in a visual interface:
+
+```bash
+npm test -- --ui
+```
+
+#### **Run Specific Test File**
+
+To run tests for a specific file:
+
+```bash
+npm test -- path/to/test/file.test.js
+```
+
+#### **Run Tests with Coverage**
+
+To generate a coverage report showing how much of your code is tested:
+
+```bash
+npm test -- --coverage
+```
+
+#### **Test File Naming Convention**
+
+Test files should follow this pattern:
+- `*.test.js` or `*.test.ts` (e.g., `checkout.test.js`)
+- Place test files in the same directory as the source file or in a `__tests__` folder
+
+#### **Writing Tests**
+
+Create a test file next to your source code:
+
+```javascript
+import { describe, it, expect } from 'vitest';
+import { yourFunction } from './yourFile.js';
+
+describe('Your Feature', () => {
+    it('should do something', () => {
+        expect(yourFunction()).toBe(true);
+    });
+});
+```
+
+---
+
 ### Building for Production
 
 To create a production-ready build:
