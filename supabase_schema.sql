@@ -79,7 +79,7 @@ BEGIN
     WHERE id = user_id;
     
     -- Delete wishlist items
-    DELETE FROM "public"."wishlist" WHERE user_id = user_id;
+    DELETE FROM "public"."wishlist" WHERE "wishlist"."user_id" = user_id;
     
     -- Log the deletion for rate limiting
     INSERT INTO "public"."signup_rate_limit" (email, can_retry_at)
